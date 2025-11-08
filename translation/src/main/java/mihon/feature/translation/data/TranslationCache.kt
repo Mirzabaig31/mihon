@@ -126,7 +126,33 @@ private data class CachedTranslation(
     val bubbles: List<CachedBubble>,
     val processingTimeMs: Long,
     val timestamp: Long,
-)
+) {
+    companion object {
+        fun fromTranslationData(data: TranslationData): CachedTranslation {
+            return CachedTranslation(
+                pageIndex = data.pageIndex,
+                chapterId = data.chapterId,
+                sourceLanguageCode = data.sourceLanguage.code,
+                targetLanguageCode = data.targetLanguage.code,
+                bubbles = data.bubbles.map { bubble ->
+                    CachedBubble(
+                        boundingBox = CachedRect(
+                            left = bubble.bubble.boundingBox.left,
+                            top = bubble.bubble.boundingBox.top,
+                            right = bubble.bubble.boundingBox.right,
+                            bottom = bubble.bubble.boundingBox.bottom,
+                        ),
+                        originalText = bubble.ocrResult.text,
+                        translatedText = bubble.translation.translatedText,
+                        confidence = bubble.translation.confidence,
+                    )
+                },
+                processingTimeMs = data.processingTimeMs,
+                timestamp = data.timestamp,
+            )
+        }
+    }
+}
 
 @Serializable
 private data class CachedBubble(
@@ -157,29 +183,3 @@ private fun CachedTranslation.toTranslationData(): TranslationData {
         timestamp = timestamp,
     )
 }
-
-private fun CachedTranslation.Companion.fromTranslationData(data: TranslationData): CachedTranslation {
-    return CachedTranslation(
-        pageIndex = data.pageIndex,
-        chapterId = data.chapterId,
-        sourceLanguageCode = data.sourceLanguage.code,
-        targetLanguageCode = data.targetLanguage.code,
-        bubbles = data.bubbles.map { bubble ->
-            CachedBubble(
-                boundingBox = CachedRect(
-                    left = bubble.bubble.boundingBox.left,
-                    top = bubble.bubble.boundingBox.top,
-                    right = bubble.bubble.boundingBox.right,
-                    bottom = bubble.bubble.boundingBox.bottom,
-                ),
-                originalText = bubble.ocrResult.text,
-                translatedText = bubble.translation.translatedText,
-                confidence = bubble.translation.confidence,
-            )
-        },
-        processingTimeMs = data.processingTimeMs,
-        timestamp = data.timestamp,
-    )
-}
-
-private companion object CachedTranslation
