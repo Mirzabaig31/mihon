@@ -110,58 +110,59 @@ class TranslationManagerImpl(
         val targetLanguage = Language.fromCode(preferences.targetLanguage().get())
             ?: Language.ENGLISH
 
-        val processingTime = measureTimeMillis {
-            try {
-                // Step 1: Detect speech bubbles
-                Log.d(TAG, "Step 1: Detecting bubbles...")
-                val detectionResult = bubbleDetector.detectBubbles(pageImage)
-                Log.d(TAG, "Detected ${detectionResult.bubbles.size} bubbles")
+        return try {
+            val startTime = System.currentTimeMillis()
 
-                // Step 2: Extract text from bubbles using OCR
-                Log.d(TAG, "Step 2: Performing OCR...")
-                val ocrResults = ocrEngine.extractText(
-                    pageImage,
-                    detectionResult.textRegions,
-                    sourceLanguage,
-                )
-                Log.d(TAG, "OCR completed for ${ocrResults.size} regions")
+            // Step 1: Detect speech bubbles
+            Log.d(TAG, "Step 1: Detecting bubbles...")
+            val detectionResult = bubbleDetector.detectBubbles(pageImage)
+            Log.d(TAG, "Detected ${detectionResult.bubbles.size} bubbles")
 
-                // Step 3: Translate extracted text
-                Log.d(TAG, "Step 3: Translating text...")
-                val textsToTranslate = ocrResults.map { it.text }.filter { it.isNotEmpty() }
-                val translationResults = if (textsToTranslate.isNotEmpty()) {
-                    translator.translate(textsToTranslate, sourceLanguage, targetLanguage)
-                } else {
-                    emptyList()
-                }
-                Log.d(TAG, "Translation completed for ${translationResults.size} texts")
+            // Step 2: Extract text from bubbles using OCR
+            Log.d(TAG, "Step 2: Performing OCR...")
+            val ocrResults = ocrEngine.extractText(
+                pageImage,
+                detectionResult.textRegions,
+                sourceLanguage,
+            )
+            Log.d(TAG, "OCR completed for ${ocrResults.size} regions")
 
-                // Combine results
-                val translatedBubbles = detectionResult.bubbles.zip(ocrResults).zip(translationResults)
-                    .map { (bubbleOcr, translation) ->
-                        val (bubble, ocr) = bubbleOcr
-                        TranslatedBubble(
-                            bubble = bubble,
-                            ocrResult = ocr,
-                            translation = translation,
-                        )
-                    }
-
-                return TranslationData(
-                    pageIndex = pageIndex,
-                    chapterId = chapterId,
-                    sourceLanguage = sourceLanguage,
-                    targetLanguage = targetLanguage,
-                    bubbles = translatedBubbles,
-                    processingTimeMs = 0, // Will be set below
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "Translation processing failed", e)
-                null
+            // Step 3: Translate extracted text
+            Log.d(TAG, "Step 3: Translating text...")
+            val textsToTranslate = ocrResults.map { it.text }.filter { it.isNotEmpty() }
+            val translationResults = if (textsToTranslate.isNotEmpty()) {
+                translator.translate(textsToTranslate, sourceLanguage, targetLanguage)
+            } else {
+                emptyList()
             }
-        }
+            Log.d(TAG, "Translation completed for ${translationResults.size} texts")
 
-        return null
+            // Combine results
+            val translatedBubbles = detectionResult.bubbles.zip(ocrResults).zip(translationResults)
+                .map { (bubbleOcr, translation) ->
+                    val (bubble, ocr) = bubbleOcr
+                    TranslatedBubble(
+                        bubble = bubble,
+                        ocrResult = ocr,
+                        translation = translation,
+                    )
+                }
+
+            val processingTime = System.currentTimeMillis() - startTime
+            Log.d(TAG, "Total processing time: ${processingTime}ms")
+
+            TranslationData(
+                pageIndex = pageIndex,
+                chapterId = chapterId,
+                sourceLanguage = sourceLanguage,
+                targetLanguage = targetLanguage,
+                bubbles = translatedBubbles,
+                processingTimeMs = processingTime,
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Translation processing failed", e)
+            null
+        }
     }
 
     private fun applyTranslationToBitmap(
