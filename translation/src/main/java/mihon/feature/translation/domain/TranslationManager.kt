@@ -1,0 +1,81 @@
+package mihon.feature.translation.domain
+
+import android.graphics.Bitmap
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.TranslationData
+import mihon.feature.translation.domain.models.TranslationPreference
+
+/**
+ * Main interface for managing comic page translation
+ * This is the primary entry point for the translation feature
+ */
+interface TranslationManager {
+
+    /**
+     * Current translation preference state
+     */
+    val preference: StateFlow<TranslationPreference>
+
+    /**
+     * Whether translation is currently enabled
+     */
+    val isEnabled: Flow<Boolean>
+
+    /**
+     * Translate a comic page image
+     * @param pageImage The original page bitmap
+     * @param chapterId The chapter ID for caching
+     * @param pageIndex The page index within the chapter
+     * @return Translated page bitmap with text replaced
+     */
+    suspend fun translatePage(
+        pageImage: Bitmap,
+        chapterId: Long,
+        pageIndex: Int,
+    ): Bitmap
+
+    /**
+     * Get translation data without applying it to the image
+     * Useful for showing original/translated text side-by-side
+     */
+    suspend fun getTranslationData(
+        pageImage: Bitmap,
+        chapterId: Long,
+        pageIndex: Int,
+    ): TranslationData?
+
+    /**
+     * Check if a page has cached translation data
+     */
+    suspend fun hasCachedTranslation(
+        chapterId: Long,
+        pageIndex: Int,
+    ): Boolean
+
+    /**
+     * Clear cached translations for a chapter
+     */
+    suspend fun clearCache(chapterId: Long)
+
+    /**
+     * Clear all cached translations
+     */
+    suspend fun clearAllCache()
+
+    /**
+     * Update translation preferences
+     */
+    suspend fun updatePreference(preference: TranslationPreference)
+
+    /**
+     * Set whether translation is enabled
+     */
+    suspend fun setEnabled(enabled: Boolean)
+
+    /**
+     * Set source and target languages
+     */
+    suspend fun setLanguages(source: Language, target: Language)
+}

@@ -181,6 +181,7 @@ dependencies {
     implementation(projects.presentationCore)
     implementation(projects.presentationWidget)
     implementation(projects.telemetry)
+    implementation(projects.translation)
 
     // Compose
     implementation(compose.activity)
