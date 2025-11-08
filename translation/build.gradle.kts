@@ -51,9 +51,6 @@ dependencies {
     // Networking (for translation APIs)
     implementation(libs.bundles.okhttp)
 
-    // Image loading and processing
-    implementation(libs.bundles.coil)
-
     // Preferences
     implementation(libs.preferencektx)
 
