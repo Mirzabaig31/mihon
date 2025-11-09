@@ -77,17 +77,14 @@ class ModelDownloadManager(
                 .setListener { update ->
                     when (update.installState) {
                         ModuleInstallStatusUpdate.InstallState.STATE_DOWNLOADING -> {
-                            val progress = if (update.totalBytesToDownload > 0) {
-                                (update.bytesDownloaded * 100 / update.totalBytesToDownload).toInt()
-                            } else {
-                                0
-                            }
+                            // Note: ModuleInstallStatusUpdate doesn't provide byte counts
+                            // We can only report that download is in progress
                             trySend(
                                 ModelDownloadProgress.Downloading(
                                     language = language,
-                                    progressPercent = progress,
-                                    bytesDownloaded = update.bytesDownloaded,
-                                    totalBytes = update.totalBytesToDownload,
+                                    progressPercent = 0, // Progress percentage not available
+                                    bytesDownloaded = 0,
+                                    totalBytes = 0,
                                 ),
                             )
                         }
@@ -164,18 +161,15 @@ class ModelDownloadManager(
                 .setListener { update ->
                     when (update.installState) {
                         ModuleInstallStatusUpdate.InstallState.STATE_DOWNLOADING -> {
-                            val progress = if (update.totalBytesToDownload > 0) {
-                                (update.bytesDownloaded * 100 / update.totalBytesToDownload).toInt()
-                            } else {
-                                0
-                            }
+                            // Note: ModuleInstallStatusUpdate doesn't provide byte counts
+                            // We can only report that download is in progress
                             // We can't tell which language this is for in batch mode
                             trySend(
                                 ModelDownloadProgress.Downloading(
                                     language = languages.first(),
-                                    progressPercent = progress,
-                                    bytesDownloaded = update.bytesDownloaded,
-                                    totalBytes = update.totalBytesToDownload,
+                                    progressPercent = 0, // Progress percentage not available
+                                    bytesDownloaded = 0,
+                                    totalBytes = 0,
                                 ),
                             )
                         }
