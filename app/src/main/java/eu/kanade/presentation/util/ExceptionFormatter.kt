@@ -9,7 +9,7 @@ import tachiyomi.domain.source.model.SourceNotInstalledException
 import tachiyomi.i18n.MR
 import java.net.UnknownHostException
 
-context(Context)
+context(_: Context)
 val Throwable.formattedMessage: String
     get() {
         when (this) {
