@@ -17,8 +17,25 @@ import mihon.feature.translation.domain.models.TextBlock
  * PaddleOCR implementation of OCR engine
  * Provides higher accuracy than ML Kit but requires model downloads
  *
- * Note: This is a simplified implementation. Full PaddleOCR integration
- * requires Paddle Lite predictor initialization and complex pre/post-processing.
+ * ⚠️ IMPLEMENTATION STATUS: INCOMPLETE (Infrastructure only)
+ *
+ * This class provides the API surface and model download infrastructure for PaddleOCR,
+ * but the actual OCR inference is NOT YET IMPLEMENTED.
+ *
+ * 📖 For a complete implementation guide, see:
+ *    translation/PADDLEOCR_IMPLEMENTATION_GUIDE.md
+ *
+ * What's needed:
+ * 1. Paddle Lite predictor integration (~100 lines)
+ * 2. Image preprocessing (~200 lines)
+ * 3. DBNet detection post-processing (~300 lines)
+ * 4. CTC recognition decoding (~150 lines)
+ * 5. Dictionary loading (~50 lines)
+ *
+ * Estimated effort: 26-40 hours
+ * Alternative: Use PaddleOCR Android demo native code (~8-12 hours)
+ *
+ * Until implemented, users should use ML Kit OCR (fully functional).
  */
 class PaddleOCREngine(
     private val context: Context,
