@@ -133,7 +133,11 @@ ${texts.joinToString("\n") { "- $it" }}"""
                 lastException = e
                 if (attempt < MAX_RETRIES - 1) {
                     val delayMs = INITIAL_RETRY_DELAY_MS * (1 shl attempt) // Exponential backoff: 1s, 2s, 4s
-                    Log.w(TAG, "Gemini API call failed (attempt ${attempt + 1}/$MAX_RETRIES), retrying in ${delayMs}ms", e)
+                    Log.w(
+                        TAG,
+                        "Gemini API call failed (attempt ${attempt + 1}/$MAX_RETRIES), retrying in ${delayMs}ms",
+                        e,
+                    )
                     kotlinx.coroutines.delay(delayMs)
                 } else {
                     Log.e(TAG, "Gemini API call failed after $MAX_RETRIES attempts", e)
