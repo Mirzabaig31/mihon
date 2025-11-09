@@ -5,7 +5,7 @@ import mihon.feature.translation.data.TranslationCache
 import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
-import mihon.feature.translation.data.ocr.StubOCREngine
+import mihon.feature.translation.data.ocr.MLKitOCREngine
 import mihon.feature.translation.data.translator.GeminiTranslator
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
@@ -32,14 +32,15 @@ class TranslationModule(private val app: Application) : InjektModule {
             TranslationCache(app)
         }
 
-        // Phase 1: Stub implementations for detector, OCR, and inpainting
+        // Phase 1: Stub implementations for detector and inpainting
         // These will be replaced in later phases
         addSingletonFactory<BubbleDetector> {
             StubBubbleDetector()
         }
 
+        // Phase 2: ML Kit OCR Engine (fully functional)
         addSingletonFactory<OCREngine> {
-            StubOCREngine()
+            MLKitOCREngine(app)
         }
 
         addSingletonFactory<InpaintingEngine> {

@@ -58,9 +58,10 @@ dependencies {
     implementation(libs.injekt)
 
     // ML Kit for OCR (Phase 2)
-    // implementation("com.google.mlkit:text-recognition-chinese:16.0.0")
-    // implementation("com.google.mlkit:text-recognition-korean:16.0.0")
-    // implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 
     // TensorFlow Lite for YOLOv10 (Phase 3)
     // implementation("org.tensorflow:tensorflow-lite:2.14.0")
