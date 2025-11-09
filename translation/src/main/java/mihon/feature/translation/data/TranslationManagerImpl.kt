@@ -129,24 +129,35 @@ class TranslationManagerImpl(
 
             // Step 3: Translate extracted text
             Log.d(TAG, "Step 3: Translating text...")
-            val textsToTranslate = ocrResults.map { it.text }.filter { it.isNotEmpty() }
-            val translationResults = if (textsToTranslate.isNotEmpty()) {
-                translator.translate(textsToTranslate, sourceLanguage, targetLanguage)
+            // Map texts with their indices to preserve alignment
+            val textsWithIndices = ocrResults.mapIndexed { index, ocr ->
+                index to ocr.text
+            }.filter { it.second.isNotEmpty() }
+
+            val translationResultsList = if (textsWithIndices.isNotEmpty()) {
+                translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage)
             } else {
                 emptyList()
             }
-            Log.d(TAG, "Translation completed for ${translationResults.size} texts")
 
-            // Combine results
-            val translatedBubbles = detectionResult.bubbles.zip(ocrResults).zip(translationResults)
-                .map { (bubbleOcr, translation) ->
-                    val (bubble, ocr) = bubbleOcr
-                    TranslatedBubble(
-                        bubble = bubble,
-                        ocrResult = ocr,
-                        translation = translation,
-                    )
-                }
+            // Create a map of original index to translation result
+            val translationMap = textsWithIndices.zip(translationResultsList).toMap()
+            Log.d(TAG, "Translation completed for ${translationResultsList.size} texts")
+
+            // Combine results while maintaining alignment
+            val translatedBubbles = detectionResult.bubbles.zip(ocrResults).mapIndexed { index, (bubble, ocr) ->
+                val translation = translationMap[index] ?: TranslationResult(
+                    originalText = ocr.text,
+                    translatedText = ocr.text,
+                    confidence = 0f,
+                    error = "Empty text, skipped translation",
+                )
+                TranslatedBubble(
+                    bubble = bubble,
+                    ocrResult = ocr,
+                    translation = translation,
+                )
+            }
 
             val processingTime = System.currentTimeMillis() - startTime
             Log.d(TAG, "Total processing time: ${processingTime}ms")

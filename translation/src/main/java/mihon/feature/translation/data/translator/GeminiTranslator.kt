@@ -32,12 +32,14 @@ class GeminiTranslator(
         from: Language,
         to: Language,
     ): List<TranslationResult> = withContext(Dispatchers.IO) {
-        if (apiKey.isEmpty()) {
+        // Validate API key
+        val validationError = validateApiKey(apiKey)
+        if (validationError != null) {
             return@withContext texts.map {
                 TranslationResult(
                     originalText = it,
                     translatedText = it,
-                    error = "Gemini API key not configured",
+                    error = validationError,
                 )
             }
         }
@@ -104,36 +106,71 @@ ${texts.joinToString("\n") { "- $it" }}"""
             .post(jsonBody.toRequestBody("application/json".toMediaType()))
             .build()
 
-        val response = client.newCall(request).execute()
+        // Retry logic with exponential backoff
+        var lastException: Exception? = null
+        repeat(MAX_RETRIES) { attempt ->
+            try {
+                val response = client.newCall(request).execute()
 
-        if (!response.isSuccessful) {
-            throw Exception("Gemini API error: ${response.code} - ${response.message}")
+                if (!response.isSuccessful) {
+                    // Retry on server errors (5xx) and rate limits (429)
+                    if (response.code in 500..599 || response.code == 429) {
+                        throw Exception("Gemini API error: ${response.code} - ${response.message}")
+                    }
+                    // Don't retry on client errors (4xx)
+                    throw Exception("Gemini API client error: ${response.code} - ${response.message}")
+                }
+
+                val responseBody = response.body?.string()
+                    ?: throw Exception("Empty response from Gemini API")
+
+                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
+
+                return@withContext geminiResponse.candidates.firstOrNull()
+                    ?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("No text in Gemini response")
+            } catch (e: Exception) {
+                lastException = e
+                if (attempt < MAX_RETRIES - 1) {
+                    val delayMs = INITIAL_RETRY_DELAY_MS * (1 shl attempt) // Exponential backoff: 1s, 2s, 4s
+                    Log.w(TAG, "Gemini API call failed (attempt ${attempt + 1}/$MAX_RETRIES), retrying in ${delayMs}ms", e)
+                    kotlinx.coroutines.delay(delayMs)
+                } else {
+                    Log.e(TAG, "Gemini API call failed after $MAX_RETRIES attempts", e)
+                }
+            }
         }
 
-        val responseBody = response.body?.string()
-            ?: throw Exception("Empty response from Gemini API")
-
-        val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
-
-        return@withContext geminiResponse.candidates.firstOrNull()
-            ?.content?.parts?.firstOrNull()?.text
-            ?: throw Exception("No text in Gemini response")
+        throw lastException ?: Exception("Gemini API call failed")
     }
 
     private fun parseGeminiResponse(
         response: String,
         originalTexts: List<String>,
     ): List<TranslationResult> {
-        val lines = response.split("\n")
+        // Split response into lines and clean up
+        var lines = response.split("\n")
             .map { it.trim() }
-            .filter { it.isNotEmpty() && !it.startsWith("-") && !it.matches(Regex("^\\d+\\..*")) }
+            .filter { it.isNotEmpty() }
+
+        // Remove common formatting artifacts only if they appear at the start of ALL lines
+        val allStartWithDash = lines.all { it.startsWith("-") || it.startsWith("•") }
+        val allStartWithNumber = lines.all { it.matches(Regex("^\\d+\\.\\s*.*")) }
+
+        lines = when {
+            allStartWithDash -> lines.map { it.removePrefix("-").removePrefix("•").trim() }
+            allStartWithNumber -> lines.map { it.replaceFirst(Regex("^\\d+\\.\\s*"), "") }
+            else -> lines // Keep original if not all lines have the same formatting
+        }
 
         // Match translated lines with original texts
         return originalTexts.mapIndexed { index, originalText ->
+            val translatedText = lines.getOrNull(index) ?: originalText
             TranslationResult(
                 originalText = originalText,
-                translatedText = lines.getOrNull(index) ?: originalText,
+                translatedText = translatedText,
                 confidence = if (lines.getOrNull(index) != null) 0.95f else 0.0f,
+                error = if (lines.getOrNull(index) == null) "No translation available" else null,
             )
         }
     }
@@ -151,6 +188,21 @@ ${texts.joinToString("\n") { "- $it" }}"""
 
     companion object {
         private const val TAG = "GeminiTranslator"
+        private const val MAX_RETRIES = 3
+        private const val INITIAL_RETRY_DELAY_MS = 1000L // 1 second
+
+        /**
+         * Validate Gemini API key format
+         * Gemini API keys are typically 39 characters long and alphanumeric
+         */
+        private fun validateApiKey(apiKey: String): String? {
+            return when {
+                apiKey.isEmpty() -> "Gemini API key not configured"
+                apiKey.length < 20 -> "API key too short (expected ~39 characters)"
+                !apiKey.matches(Regex("^[A-Za-z0-9_-]+$")) -> "API key contains invalid characters"
+                else -> null // Valid
+            }
+        }
     }
 }
 
