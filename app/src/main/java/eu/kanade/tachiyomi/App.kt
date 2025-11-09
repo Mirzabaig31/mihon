@@ -37,7 +37,6 @@ import eu.kanade.tachiyomi.data.coil.TachiyomiImageDecoder
 import eu.kanade.tachiyomi.data.notification.Notifications
 import eu.kanade.tachiyomi.di.AppModule
 import eu.kanade.tachiyomi.di.PreferenceModule
-import mihon.feature.translation.di.TranslationModule
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
 import eu.kanade.tachiyomi.ui.base.delegate.SecureActivityDelegate
@@ -55,6 +54,7 @@ import logcat.LogPriority
 import logcat.LogcatLogger
 import mihon.core.migration.Migrator
 import mihon.core.migration.migrations.migrations
+import mihon.feature.translation.di.TranslationModule
 import mihon.telemetry.TelemetryConfig
 import org.conscrypt.Conscrypt
 import tachiyomi.core.common.i18n.stringResource

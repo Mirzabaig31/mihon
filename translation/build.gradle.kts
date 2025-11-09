@@ -51,14 +51,11 @@ dependencies {
     // Networking (for translation APIs)
     implementation(libs.bundles.okhttp)
 
-    // Image loading and processing
-    implementation(libs.bundles.coil)
-
     // Preferences
     implementation(libs.preferencektx)
 
     // Injekt (DI)
-    implementation(libs.injekt.core)
+    implementation(libs.injekt)
 
     // ML Kit for OCR (Phase 2)
     // implementation("com.google.mlkit:text-recognition-chinese:16.0.0")

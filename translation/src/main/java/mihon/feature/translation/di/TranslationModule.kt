@@ -22,7 +22,6 @@ import uy.kohesive.injekt.api.get
 class TranslationModule(private val app: Application) : InjektModule {
 
     override fun InjektRegistrar.registerInjectables() {
-
         // Preferences
         addSingletonFactory {
             TranslationPreferences(get<PreferenceStore>())
