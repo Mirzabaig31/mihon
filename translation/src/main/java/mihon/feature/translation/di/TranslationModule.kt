@@ -7,6 +7,9 @@ import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
 import mihon.feature.translation.data.ocr.MLKitOCREngine
 import mihon.feature.translation.data.ocr.ModelDownloadManager
+import mihon.feature.translation.data.ocr.OCREngineProvider
+import mihon.feature.translation.data.ocr.PaddleModelDownloadManager
+import mihon.feature.translation.data.ocr.PaddleOCREngine
 import mihon.feature.translation.data.translator.GeminiTranslator
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
@@ -39,14 +42,32 @@ class TranslationModule(private val app: Application) : InjektModule {
             StubBubbleDetector()
         }
 
-        // Model Download Manager for on-demand ML Kit model downloads
+        // Model Download Managers for on-demand model downloads
         addSingletonFactory {
             ModelDownloadManager(app)
         }
 
-        // Phase 2: ML Kit OCR Engine (fully functional)
-        addSingletonFactory<OCREngine> {
+        addSingletonFactory {
+            PaddleModelDownloadManager(app, get())
+        }
+
+        // Phase 2: OCR Engines (ML Kit and PaddleOCR)
+        // Create individual engines
+        addSingletonFactory {
             MLKitOCREngine(app, get())
+        }
+
+        addSingletonFactory {
+            PaddleOCREngine(app, get())
+        }
+
+        // OCR Engine Provider - selects engine based on user preference
+        addSingletonFactory<OCREngine> {
+            OCREngineProvider(
+                mlKitEngine = get(),
+                paddleEngine = get(),
+                preferences = get(),
+            )
         }
 
         addSingletonFactory<InpaintingEngine> {
@@ -72,6 +93,7 @@ class TranslationModule(private val app: Application) : InjektModule {
                 preferences = get(),
                 cache = get(),
                 modelDownloadManager = get(),
+                paddleModelDownloadManager = get(),
             )
         }
     }

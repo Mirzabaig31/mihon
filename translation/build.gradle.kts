@@ -66,6 +66,13 @@ dependencies {
     // ML Kit Module Install API (for on-demand model download)
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
 
+    // PaddleOCR for high-accuracy OCR (Phase 2 - Alternative OCR)
+    // Using Paddle Lite inference engine
+    implementation("io.github.PaddlePaddle:paddle-lite:2.13.0")
+
+    // OkHttp for model downloading (already included but ensuring availability)
+    // implementation(libs.bundles.okhttp)
+
     // TensorFlow Lite for YOLOv10 (Phase 3)
     // implementation("org.tensorflow:tensorflow-lite:2.14.0")
     // implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")

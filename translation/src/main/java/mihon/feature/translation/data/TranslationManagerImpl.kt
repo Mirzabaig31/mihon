@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import mihon.feature.translation.data.ocr.ModelDownloadManager
 import mihon.feature.translation.data.ocr.ModelDownloadProgress
+import mihon.feature.translation.data.ocr.PaddleModelDownloadManager
+import mihon.feature.translation.data.ocr.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
 import mihon.feature.translation.domain.OCREngine
@@ -38,6 +40,7 @@ class TranslationManagerImpl(
     private val preferences: TranslationPreferences,
     private val cache: TranslationCache,
     private val modelDownloadManager: ModelDownloadManager,
+    private val paddleModelDownloadManager: PaddleModelDownloadManager,
 ) : TranslationManager {
 
     private val _preference = MutableStateFlow(getCurrentPreference())
@@ -267,6 +270,26 @@ class TranslationManagerImpl(
 
     override fun downloadModels(languages: List<Language>): Flow<ModelDownloadProgress> {
         return modelDownloadManager.downloadModels(languages)
+    }
+
+    override suspend fun isPaddleDetectionModelDownloaded(): Boolean {
+        return paddleModelDownloadManager.isDetectionModelDownloaded()
+    }
+
+    override suspend fun isPaddleRecognitionModelDownloaded(language: Language): Boolean {
+        return paddleModelDownloadManager.isRecognitionModelDownloaded(language)
+    }
+
+    override fun downloadPaddleDetectionModel(): Flow<PaddleModelDownloadProgress> {
+        return paddleModelDownloadManager.downloadDetectionModel()
+    }
+
+    override fun downloadPaddleRecognitionModel(language: Language): Flow<PaddleModelDownloadProgress> {
+        return paddleModelDownloadManager.downloadRecognitionModel(language)
+    }
+
+    override fun downloadAllPaddleModels(language: Language): Flow<PaddleModelDownloadProgress> {
+        return paddleModelDownloadManager.downloadAllModels(language)
     }
 
     private fun getCurrentPreference(): TranslationPreference {
