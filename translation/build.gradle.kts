@@ -67,8 +67,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
 
     // PaddleOCR for high-accuracy OCR (Phase 2 - Alternative OCR)
-    // Using Paddle Lite inference engine
-    implementation("io.github.PaddlePaddle:paddle-lite:2.13.0")
+    // TODO: Add Paddle Lite when implementing PaddleOCR inference
+    // See translation/PADDLEOCR_IMPLEMENTATION_GUIDE.md for instructions
+    // implementation("io.github.PaddlePaddle:paddle-lite:2.13.0") // Not available in Maven repos
+    // Alternative: Use PaddleOCR demo .aar or native code from GitHub
 
     // OkHttp for model downloading (already included but ensuring availability)
     // implementation(libs.bundles.okhttp)
