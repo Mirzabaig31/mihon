@@ -141,7 +141,8 @@ class TranslationManagerImpl(
             }
 
             // Create a map of original index to translation result
-            val translationMap = textsWithIndices.zip(translationResultsList).toMap()
+            val translationMap = textsWithIndices.zip(translationResultsList)
+                .associate { (indexedText, result) -> indexedText.first to result }
             Log.d(TAG, "Translation completed for ${translationResultsList.size} texts")
 
             // Combine results while maintaining alignment
