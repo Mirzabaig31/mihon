@@ -49,14 +49,23 @@ jobs:
       - name: Build app
         run: ./gradlew assembleRelease -Pinclude-telemetry -Penable-updater
 
+      - name: Build debug APK (signed for testing)
+        run: ./gradlew assembleStandardDebug
+
       - name: Run unit tests
         run: ./gradlew testReleaseUnitTest
 
-      - name: Upload APK
+      - name: Upload Release APK
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: arm64-v8a-${{ github.sha }}
+          name: arm64-v8a-release-${{ github.sha }}
           path: app/build/outputs/apk/release/app-arm64-v8a-release-unsigned.apk
+
+      - name: Upload Debug APK (signed, ready to install)
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: arm64-v8a-debug-${{ github.sha }}
+          path: app/build/outputs/apk/standard/debug/app-standard-arm64-v8a-debug.apk
 
       - name: Upload mapping
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
