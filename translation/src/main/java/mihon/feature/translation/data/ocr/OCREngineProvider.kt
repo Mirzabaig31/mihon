@@ -45,8 +45,8 @@ class OCREngineProvider(
         return getEngine().getName()
     }
 
-    override fun isAvailable(): Boolean {
-        return getEngine().isAvailable()
+    override fun supportsLanguage(language: Language): Boolean {
+        return getEngine().supportsLanguage(language)
     }
 
     /**

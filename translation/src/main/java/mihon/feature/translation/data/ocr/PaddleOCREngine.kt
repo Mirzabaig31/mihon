@@ -165,8 +165,16 @@ class PaddleOCREngine(
 
     override fun getName(): String = "PaddleOCR"
 
-    override fun isAvailable(): Boolean {
-        // PaddleOCR is available if detection model is downloaded
+    override fun supportsLanguage(language: Language): Boolean {
+        // PaddleOCR supports a language if its recognition model is downloaded
+        return modelDownloadManager.isRecognitionModelDownloaded(language)
+    }
+
+    /**
+     * Check if PaddleOCR engine is available (detection model downloaded)
+     * Note: This is not part of OCREngine interface
+     */
+    fun isAvailable(): Boolean {
         return modelDownloadManager.isDetectionModelDownloaded()
     }
 

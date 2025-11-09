@@ -226,7 +226,18 @@ class MLKitOCREngine(
 
     override fun getName(): String = "ML Kit OCR"
 
-    override fun isAvailable(): Boolean = true
+    override fun supportsLanguage(language: Language): Boolean {
+        // ML Kit supports Japanese, Chinese, Korean, and Latin
+        return when (language) {
+            Language.JAPANESE,
+            Language.CHINESE_SIMPLIFIED,
+            Language.CHINESE_TRADITIONAL,
+            Language.KOREAN,
+            Language.ENGLISH,
+            -> true
+            else -> false
+        }
+    }
 
     /**
      * Clean up resources
