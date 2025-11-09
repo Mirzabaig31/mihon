@@ -35,6 +35,7 @@ dependencies {
     // Coroutines
     implementation(platform(kotlinx.coroutines.bom))
     implementation(kotlinx.bundles.coroutines)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Serialization (for API communication)
     implementation(kotlinx.bundles.serialization)
