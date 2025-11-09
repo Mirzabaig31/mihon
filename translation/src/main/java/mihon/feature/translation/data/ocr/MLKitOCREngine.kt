@@ -4,9 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.Log
+import com.google.android.gms.common.moduleinstall.ModuleInstallStatusUpdate
+import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import mihon.feature.translation.domain.OCREngine
@@ -33,21 +37,23 @@ class MLKitOCREngine(
     ): List<OCRResult> = withContext(Dispatchers.Default) {
         val recognizer = recognizerProvider.getRecognizer(language)
 
-        // Process each region (speech bubble) separately
+        // Process each region (speech bubble) in parallel for faster performance
         regions.map { region ->
-            try {
-                processRegion(image, region, recognizer, language)
-            } catch (e: Exception) {
-                Log.e(TAG, "OCR failed for region $region", e)
-                OCRResult(
-                    text = "",
-                    confidence = 0f,
-                    boundingBox = region,
-                    textBlocks = emptyList(),
-                    error = e.message,
-                )
+            async {
+                try {
+                    processRegion(image, region, recognizer, language)
+                } catch (e: Exception) {
+                    Log.e(TAG, "OCR failed for region $region", e)
+                    OCRResult(
+                        text = "",
+                        confidence = 0f,
+                        boundingBox = region,
+                        textBlocks = emptyList(),
+                        error = e.message,
+                    )
+                }
             }
-        }
+        }.awaitAll()
     }
 
     /**
@@ -66,7 +72,25 @@ class MLKitOCREngine(
         val inputImage = InputImage.fromBitmap(croppedImage, 0)
 
         // Process with ML Kit (suspends until complete)
-        val visionText = recognizer.process(inputImage).await()
+        val visionText = try {
+            recognizer.process(inputImage).await()
+        } catch (e: MlKitException) {
+            when (e.errorCode) {
+                MlKitException.UNAVAILABLE -> {
+                    // Model not downloaded yet - ML Kit will download automatically
+                    Log.w(TAG, "ML Kit model downloading for $language, this may take a few seconds...", e)
+                    throw Exception("ML Kit model downloading. Please wait and try again.", e)
+                }
+                MlKitException.NOT_ENOUGH_SPACE -> {
+                    Log.e(TAG, "Not enough space to download ML Kit model", e)
+                    throw Exception("Not enough storage space for OCR model", e)
+                }
+                else -> {
+                    Log.e(TAG, "ML Kit OCR error: ${e.errorCode}", e)
+                    throw e
+                }
+            }
+        }
 
         // Process and sort text blocks
         processVisionText(visionText, region)
@@ -98,7 +122,10 @@ class MLKitOCREngine(
         )
 
         // Filter out very small text blocks (likely noise or furigana)
-        val filteredBlocks = filterSmallTextBlocks(processedBlocks)
+        val sizeFilteredBlocks = filterSmallTextBlocks(processedBlocks)
+
+        // Filter out low confidence text blocks (likely OCR errors)
+        val filteredBlocks = filterLowConfidenceBlocks(sizeFilteredBlocks)
 
         // Concatenate text in correct order
         val extractedText = filteredBlocks.joinToString("\n") { it.text }
@@ -135,6 +162,20 @@ class MLKitOCREngine(
 
         return blocks.filter { block ->
             block.boundingBox.height() >= minHeight
+        }
+    }
+
+    /**
+     * Filter out low confidence text blocks that are likely OCR errors
+     * Only blocks with confidence >= 0.6 are kept
+     */
+    private fun filterLowConfidenceBlocks(
+        blocks: List<mihon.feature.translation.domain.models.TextBlock>,
+    ): List<mihon.feature.translation.domain.models.TextBlock> {
+        if (blocks.isEmpty()) return blocks
+
+        return blocks.filter { block ->
+            (block.confidence ?: 0f) >= MIN_CONFIDENCE_THRESHOLD
         }
     }
 
@@ -181,5 +222,6 @@ class MLKitOCREngine(
         private const val TAG = "MLKitOCREngine"
         private const val CROP_PADDING = 10 // pixels
         private const val MIN_TEXT_HEIGHT_RATIO = 0.3f // 30% of average height
+        private const val MIN_CONFIDENCE_THRESHOLD = 0.6f // 60% confidence minimum
     }
 }
