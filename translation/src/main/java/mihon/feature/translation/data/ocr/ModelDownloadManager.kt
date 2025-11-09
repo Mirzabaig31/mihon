@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.ModelDownloadProgress
 
 /**
  * Manages ML Kit model downloads for different languages
@@ -228,31 +229,4 @@ class ModelDownloadManager(
     companion object {
         private const val TAG = "ModelDownloadManager"
     }
-}
-
-/**
- * Represents the progress of a model download
- */
-sealed class ModelDownloadProgress {
-    abstract val language: Language
-
-    data class Downloading(
-        override val language: Language,
-        val progressPercent: Int,
-        val bytesDownloaded: Long,
-        val totalBytes: Long,
-    ) : ModelDownloadProgress()
-
-    data class Completed(
-        override val language: Language,
-    ) : ModelDownloadProgress()
-
-    data class Failed(
-        override val language: Language,
-        val error: String,
-    ) : ModelDownloadProgress()
-
-    data class Cancelled(
-        override val language: Language,
-    ) : ModelDownloadProgress()
 }

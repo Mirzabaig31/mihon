@@ -149,3 +149,52 @@ enum class InpaintingEngine {
     DIFFUSION,
     SIMPLE,
 }
+
+/**
+ * Represents the progress of an ML Kit model download
+ */
+sealed class ModelDownloadProgress {
+    abstract val language: Language
+
+    data class Downloading(
+        override val language: Language,
+        val progressPercent: Int,
+        val bytesDownloaded: Long,
+        val totalBytes: Long,
+    ) : ModelDownloadProgress()
+
+    data class Completed(
+        override val language: Language,
+    ) : ModelDownloadProgress()
+
+    data class Failed(
+        override val language: Language,
+        val error: String,
+    ) : ModelDownloadProgress()
+
+    data class Cancelled(
+        override val language: Language,
+    ) : ModelDownloadProgress()
+}
+
+/**
+ * Progress state for PaddleOCR model downloads
+ */
+sealed class PaddleModelDownloadProgress {
+    abstract val modelType: String
+
+    data class Downloading(
+        override val modelType: String,
+        val progressPercent: Int,
+        val message: String? = null,
+    ) : PaddleModelDownloadProgress()
+
+    data class Completed(
+        override val modelType: String,
+    ) : PaddleModelDownloadProgress()
+
+    data class Failed(
+        override val modelType: String,
+        val error: String,
+    ) : PaddleModelDownloadProgress()
+}

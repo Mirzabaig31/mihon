@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.PaddleModelDownloadProgress
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -289,26 +290,4 @@ class PaddleModelDownloadManager(
         private const val DETECTION_MODEL_URL =
             "https://paddleocr.bj.bcebos.com/PP-OCRv4/mobile/ch_PP-OCRv4_det_infer.nb"
     }
-}
-
-/**
- * Progress state for PaddleOCR model downloads
- */
-sealed class PaddleModelDownloadProgress {
-    abstract val modelType: String
-
-    data class Downloading(
-        override val modelType: String,
-        val progressPercent: Int,
-        val message: String? = null,
-    ) : PaddleModelDownloadProgress()
-
-    data class Completed(
-        override val modelType: String,
-    ) : PaddleModelDownloadProgress()
-
-    data class Failed(
-        override val modelType: String,
-        val error: String,
-    ) : PaddleModelDownloadProgress()
 }

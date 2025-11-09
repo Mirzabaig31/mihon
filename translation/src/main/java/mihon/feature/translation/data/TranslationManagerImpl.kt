@@ -12,9 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import mihon.feature.translation.data.ocr.ModelDownloadManager
-import mihon.feature.translation.data.ocr.ModelDownloadProgress
 import mihon.feature.translation.data.ocr.PaddleModelDownloadManager
-import mihon.feature.translation.data.ocr.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
 import mihon.feature.translation.domain.OCREngine
@@ -22,6 +20,8 @@ import mihon.feature.translation.domain.TranslationManager
 import mihon.feature.translation.domain.TranslationPreferences
 import mihon.feature.translation.domain.TranslatorAPI
 import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.ModelDownloadProgress
+import mihon.feature.translation.domain.models.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.models.TranslatedBubble
 import mihon.feature.translation.domain.models.TranslationData
 import mihon.feature.translation.domain.models.TranslationPreference

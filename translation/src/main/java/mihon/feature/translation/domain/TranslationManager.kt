@@ -3,9 +3,9 @@ package mihon.feature.translation.domain
 import android.graphics.Bitmap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import mihon.feature.translation.data.ocr.ModelDownloadProgress
-import mihon.feature.translation.data.ocr.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.ModelDownloadProgress
+import mihon.feature.translation.domain.models.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.models.TranslationData
 import mihon.feature.translation.domain.models.TranslationPreference
 
