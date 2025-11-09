@@ -63,6 +63,9 @@ dependencies {
     implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
     implementation("com.google.mlkit:text-recognition-korean:16.0.1")
 
+    // ML Kit Module Install API (for on-demand model download)
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+
     // TensorFlow Lite for YOLOv10 (Phase 3)
     // implementation("org.tensorflow:tensorflow-lite:2.14.0")
     // implementation("org.tensorflow:tensorflow-lite-gpu:2.14.0")

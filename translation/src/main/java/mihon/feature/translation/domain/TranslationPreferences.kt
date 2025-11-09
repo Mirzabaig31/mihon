@@ -92,6 +92,22 @@ class TranslationPreferences(
         "balanced",
     )
 
+    // Model download preferences
+    fun autoDownloadModels() = preferenceStore.getBoolean(
+        "translation_auto_download_models",
+        false, // Default to manual download for user control
+    )
+
+    fun downloadOnWifiOnly() = preferenceStore.getBoolean(
+        "translation_download_wifi_only",
+        true, // Default to WiFi only to save data
+    )
+
+    fun downloadedModels() = preferenceStore.getStringSet(
+        "translation_downloaded_models",
+        emptySet(),
+    )
+
     companion object {
         const val PROVIDER_GEMINI = "gemini"
         const val PROVIDER_GOOGLE_CLOUD = "google_cloud"

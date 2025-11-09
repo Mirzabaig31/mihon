@@ -3,6 +3,7 @@ package mihon.feature.translation.domain
 import android.graphics.Bitmap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import mihon.feature.translation.data.ocr.ModelDownloadProgress
 import mihon.feature.translation.domain.models.Language
 import mihon.feature.translation.domain.models.TranslationData
 import mihon.feature.translation.domain.models.TranslationPreference
@@ -78,4 +79,21 @@ interface TranslationManager {
      * Set source and target languages
      */
     suspend fun setLanguages(source: Language, target: Language)
+
+    /**
+     * Check if OCR model for a language is downloaded
+     */
+    suspend fun isModelDownloaded(language: Language): Boolean
+
+    /**
+     * Download OCR model for a specific language
+     * Returns a Flow that emits download progress
+     */
+    fun downloadModel(language: Language): Flow<ModelDownloadProgress>
+
+    /**
+     * Download OCR models for multiple languages
+     * Returns a Flow that emits download progress for all models
+     */
+    fun downloadModels(languages: List<Language>): Flow<ModelDownloadProgress>
 }

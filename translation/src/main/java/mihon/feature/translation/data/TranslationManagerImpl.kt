@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import mihon.feature.translation.data.ocr.ModelDownloadManager
+import mihon.feature.translation.data.ocr.ModelDownloadProgress
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
 import mihon.feature.translation.domain.OCREngine
@@ -35,6 +37,7 @@ class TranslationManagerImpl(
     private val inpaintingEngine: InpaintingEngine,
     private val preferences: TranslationPreferences,
     private val cache: TranslationCache,
+    private val modelDownloadManager: ModelDownloadManager,
 ) : TranslationManager {
 
     private val _preference = MutableStateFlow(getCurrentPreference())
@@ -252,6 +255,18 @@ class TranslationManagerImpl(
             sourceLanguage = source,
             targetLanguage = target,
         )
+    }
+
+    override suspend fun isModelDownloaded(language: Language): Boolean {
+        return modelDownloadManager.isModelDownloaded(language)
+    }
+
+    override fun downloadModel(language: Language): Flow<ModelDownloadProgress> {
+        return modelDownloadManager.downloadModel(language)
+    }
+
+    override fun downloadModels(languages: List<Language>): Flow<ModelDownloadProgress> {
+        return modelDownloadManager.downloadModels(languages)
     }
 
     private fun getCurrentPreference(): TranslationPreference {

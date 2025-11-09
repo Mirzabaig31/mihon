@@ -25,6 +25,7 @@ import kotlin.math.min
  */
 class MLKitOCREngine(
     private val context: Context,
+    private val modelDownloadManager: ModelDownloadManager,
 ) : OCREngine {
 
     private val recognizerProvider = TextRecognizerProvider()
@@ -35,6 +36,23 @@ class MLKitOCREngine(
         regions: List<RectF>,
         language: Language,
     ): List<OCRResult> = withContext(Dispatchers.Default) {
+        // Check if model is downloaded before attempting OCR
+        val isModelAvailable = modelDownloadManager.isModelDownloaded(language)
+        if (!isModelAvailable) {
+            val errorMessage =
+                "ML Kit model for $language not downloaded. Please download it in settings."
+            Log.w(TAG, errorMessage)
+            return@withContext regions.map { region ->
+                OCRResult(
+                    text = "",
+                    confidence = 0f,
+                    boundingBox = region,
+                    textBlocks = emptyList(),
+                    error = errorMessage,
+                )
+            }
+        }
+
         val recognizer = recognizerProvider.getRecognizer(language)
 
         // Process each region (speech bubble) in parallel for faster performance
