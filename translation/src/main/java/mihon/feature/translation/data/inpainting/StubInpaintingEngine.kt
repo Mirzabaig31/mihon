@@ -15,7 +15,7 @@ class StubInpaintingEngine : InpaintingEngine {
     ): Bitmap {
         // For Phase 1, just return the original image
         // In later phases, this will remove text from the image
-        return image.copy(image.config, true)
+        return image.copy(image.config ?: Bitmap.Config.ARGB_8888, true)
     }
 
     override fun getName(): String = "Stub Inpainting (Phase 1)"
