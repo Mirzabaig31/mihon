@@ -67,4 +67,3 @@ class OCREngineProvider(
         paddleEngine.close()
     }
 }
-
