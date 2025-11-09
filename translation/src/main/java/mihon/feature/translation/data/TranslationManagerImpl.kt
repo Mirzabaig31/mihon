@@ -21,6 +21,7 @@ import mihon.feature.translation.domain.models.Language
 import mihon.feature.translation.domain.models.TranslatedBubble
 import mihon.feature.translation.domain.models.TranslationData
 import mihon.feature.translation.domain.models.TranslationPreference
+import mihon.feature.translation.domain.models.TranslationResult
 import kotlin.system.measureTimeMillis
 
 /**
