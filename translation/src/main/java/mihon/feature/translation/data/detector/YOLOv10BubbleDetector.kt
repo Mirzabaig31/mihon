@@ -143,8 +143,8 @@ class YOLOv10BubbleDetector(
 
             when {
                 memoryClass >= 512 -> 1024 // High-end devices
-                memoryClass >= 256 -> 640  // Mid-range devices
-                else -> 416                 // Low-end devices
+                memoryClass >= 256 -> 640 // Mid-range devices
+                else -> 416 // Low-end devices
             }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to determine optimal input size", e)
@@ -234,8 +234,8 @@ class YOLOv10BubbleDetector(
 
                 // Normalize to [0, 1]
                 inputArray[0][y][x][0] = ((pixel shr 16) and 0xFF) / 255.0f // R
-                inputArray[0][y][x][1] = ((pixel shr 8) and 0xFF) / 255.0f  // G
-                inputArray[0][y][x][2] = (pixel and 0xFF) / 255.0f          // B
+                inputArray[0][y][x][1] = ((pixel shr 8) and 0xFF) / 255.0f // G
+                inputArray[0][y][x][2] = (pixel and 0xFF) / 255.0f // B
             }
         }
 
@@ -379,7 +379,7 @@ class YOLOv10BubbleDetector(
         val aspectRatio = detection.boundingBox.width() / detection.boundingBox.height()
 
         return when {
-            aspectRatio < 0.7 -> TextStyle.VERTICAL   // Tall = Japanese vertical text
+            aspectRatio < 0.7 -> TextStyle.VERTICAL // Tall = Japanese vertical text
             aspectRatio > 2.0 -> TextStyle.HORIZONTAL // Wide = Horizontal text
             else -> TextStyle.MIXED
         }
