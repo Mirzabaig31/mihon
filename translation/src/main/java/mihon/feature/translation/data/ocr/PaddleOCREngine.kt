@@ -281,7 +281,7 @@ class PaddleOCREngine(
             outputTensor?.getData(this)
         }
     }
-    */
+     */
 
     /**
      * Run recognition inference (CRNN)
@@ -314,7 +314,7 @@ class PaddleOCREngine(
             }
         }
     }
-    */
+     */
 
     /**
      * Crop bitmap to RectF region
@@ -380,7 +380,7 @@ class PaddleOCREngine(
 
             Log.d(TAG, "PaddleOCR predictors initialized successfully for $language")
             return true
-            */
+             */
 
             // TEMPORARY: Return false until Paddle Lite SDK is installed
             Log.w(TAG, "Paddle Lite SDK not installed - predictors not initialized")
