@@ -108,9 +108,12 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                 preference = translationPreferences.translatorProvider(),
                 title = stringResource(MR.strings.pref_translation_provider),
                 entries = persistentMapOf(
-                    TranslationPreferences.TRANSLATOR_GOOGLE to stringResource(MR.strings.pref_translation_provider_google),
-                    TranslationPreferences.TRANSLATOR_GEMINI to stringResource(MR.strings.pref_translation_provider_gemini),
-                    TranslationPreferences.TRANSLATOR_OPENAI to stringResource(MR.strings.pref_translation_provider_openai),
+                    TranslationPreferences.TRANSLATOR_GOOGLE to
+                        stringResource(MR.strings.pref_translation_provider_google),
+                    TranslationPreferences.TRANSLATOR_GEMINI to
+                        stringResource(MR.strings.pref_translation_provider_gemini),
+                    TranslationPreferences.TRANSLATOR_OPENAI to
+                        stringResource(MR.strings.pref_translation_provider_openai),
                 ),
             ),
         )
