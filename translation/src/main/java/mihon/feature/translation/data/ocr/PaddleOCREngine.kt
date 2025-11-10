@@ -175,7 +175,7 @@ class PaddleOCREngine(
                         language = language
                     )
                 }
-                */
+                 */
             }
 
             // TEMPORARY: Return error until Paddle Lite SDK is installed
@@ -205,7 +205,7 @@ class PaddleOCREngine(
                 boundingBox = region,
                 textBlocks = textBlocks
             )
-            */
+             */
         } catch (e: Exception) {
             Log.e(TAG, "PaddleOCR processing failed", e)
             return@withContext OCRResult(
@@ -251,7 +251,7 @@ class PaddleOCREngine(
 
             Log.d(TAG, "Recognized: \"$text\" (confidence: $confidence)")
             return@withContext Pair(text, confidence)
-            */
+             */
 
             // TEMPORARY: Return empty until Paddle Lite is installed
             return@withContext Pair("", 0f)
@@ -404,7 +404,7 @@ class PaddleOCREngine(
         recognitionPredictor = null
 
         Log.d(TAG, "PaddleOCR predictors released")
-        */
+         */
 
         loadedDictionaries.clear()
     }

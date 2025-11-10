@@ -113,11 +113,16 @@ class PaddleOCRDictionary(private val context: Context) {
          * Dictionaries should be placed in: translation/src/main/assets/ocr_dictionaries/
          */
         val DICTIONARY_URLS = mapOf(
-            Language.JAPANESE to "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/japan_dict.txt",
-            Language.CHINESE_SIMPLIFIED to "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocr_keys_v1.txt",
-            Language.CHINESE_TRADITIONAL to "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/chinese_cht_dict.txt",
-            Language.KOREAN to "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/korean_dict.txt",
-            Language.ENGLISH to "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/en_dict.txt",
+            Language.JAPANESE to
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/japan_dict.txt",
+            Language.CHINESE_SIMPLIFIED to
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/ppocr_keys_v1.txt",
+            Language.CHINESE_TRADITIONAL to
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/chinese_cht_dict.txt",
+            Language.KOREAN to
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/korean_dict.txt",
+            Language.ENGLISH to
+                "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/ppocr/utils/dict/en_dict.txt",
         )
     }
 }
