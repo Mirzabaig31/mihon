@@ -784,6 +784,37 @@ class ReaderViewModel @JvmOverloads constructor(
             translationJobs.values.forEach { it.cancel() }
             translationJobs.clear()
             mutableState.update { it.copy(translatingPages = emptySet()) }
+
+            // Clear all translated streams to revert to original pages
+            val chapter = mutableState.value.viewerChapters?.currChapter
+            chapter?.pages?.forEach { page ->
+                page.translatedStream = null
+            }
+
+            // Clean up cache directory
+            cleanupTranslationCache()
+        }
+    }
+
+    /**
+     * Cleans up translation cache files to free storage.
+     */
+    private fun cleanupTranslationCache() {
+        viewModelScope.launchIO {
+            try {
+                val cacheDir = File(Injekt.get<Application>().cacheDir, "translation")
+                if (cacheDir.exists() && cacheDir.isDirectory) {
+                    cacheDir.listFiles()?.forEach { file ->
+                        try {
+                            file.delete()
+                        } catch (e: Exception) {
+                            logcat(LogPriority.WARN) { "Failed to delete cache file: ${file.name}" }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR) { "Failed to cleanup translation cache: ${e.message}" }
+            }
         }
     }
 
@@ -832,8 +863,16 @@ class ReaderViewModel @JvmOverloads constructor(
                     translatedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
                 }
 
-                // Set the translated stream
-                page.translatedStream = { tempFile.inputStream() }
+                // Set the translated stream with file existence check
+                page.translatedStream = {
+                    if (tempFile.exists()) {
+                        tempFile.inputStream()
+                    } else {
+                        // Fallback to original stream if cache file was deleted
+                        logcat(LogPriority.WARN) { "Translation cache file missing for page $pageIndex, using original" }
+                        page.stream?.invoke() ?: throw IllegalStateException("No stream available for page $pageIndex")
+                    }
+                }
 
                 // Remove from translating set
                 mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }

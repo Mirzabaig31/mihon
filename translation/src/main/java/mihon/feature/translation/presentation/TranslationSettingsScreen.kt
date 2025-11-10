@@ -10,6 +10,7 @@ import eu.kanade.presentation.more.settings.Preference
 import eu.kanade.presentation.more.settings.screen.SearchableSettings
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentList
 import mihon.feature.translation.domain.TranslationPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -138,8 +139,7 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_translator),
-            preferenceItems = persistentListOf<Preference.PreferenceItem<out Any, out Any>>()
-                .addAll(preferenceItems),
+            preferenceItems = preferenceItems.toPersistentList(),
         )
     }
 
