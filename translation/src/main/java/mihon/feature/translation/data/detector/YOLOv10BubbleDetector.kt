@@ -68,9 +68,11 @@ class YOLOv10BubbleDetector(
                 // Try GPU acceleration first
                 if (isGPUAvailable()) {
                     try {
-                        gpuDelegate = GpuDelegate(GpuDelegate.Options().apply {
-                            setPrecisionLossAllowed(true) // Use FP16 for speed
-                        })
+                        gpuDelegate = GpuDelegate(
+                            GpuDelegate.Options().apply {
+                                setPrecisionLossAllowed(true) // Use FP16 for speed
+                            },
+                        )
                         addDelegate(gpuDelegate)
                         Log.d(TAG, "GPU delegate enabled")
                     } catch (e: Exception) {
