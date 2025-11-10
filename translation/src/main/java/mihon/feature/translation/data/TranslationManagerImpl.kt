@@ -184,42 +184,94 @@ class TranslationManagerImpl(
         }
     }
 
-    private fun applyTranslationToBitmap(
+    private suspend fun applyTranslationToBitmap(
         original: Bitmap,
         translationData: TranslationData,
     ): Bitmap {
-        // Create a mutable copy
-        val result = original.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(result)
+        val startTime = System.currentTimeMillis()
 
-        // For Phase 1, we'll just draw translated text on top
-        // In later phases, we'll use inpainting to remove original text first
-        val paint = Paint().apply {
+        // Step 1: Recreate masks from bubble bounding boxes
+        val masks = recreateMasksFromBubbles(
+            translationData.bubbles.map { it.bubble.boundingBox },
+            original.width,
+            original.height,
+        )
+
+        // Step 2: Inpaint the image to remove original text
+        val inpaintedImage = if (masks.isNotEmpty()) {
+            var result: Bitmap? = null
+            val inpaintTime = measureTimeMillis {
+                result = inpaintingEngine.inpaint(original, masks)
+            }
+            Log.d(TAG, "Inpainting completed in ${inpaintTime}ms")
+            result!!
+        } else {
+            original.copy(Bitmap.Config.ARGB_8888, true)
+        }
+
+        // Clean up masks
+        masks.forEach { it.recycle() }
+
+        // Step 3: Draw translated text on the clean image
+        val canvas = Canvas(inpaintedImage)
+
+        val textPaint = Paint().apply {
             color = Color.BLACK
             textSize = 24f
             isAntiAlias = true
+            textAlign = Paint.Align.CENTER
         }
 
         val backgroundPaint = Paint().apply {
             color = Color.WHITE
             style = Paint.Style.FILL
-            alpha = 200
+            alpha = 230 // Slightly transparent for better blending
         }
 
         translationData.bubbles.forEach { translatedBubble ->
             val bounds = translatedBubble.bubble.boundingBox
             val translatedText = translatedBubble.translation.translatedText
 
-            // Draw white background
-            canvas.drawRect(bounds, backgroundPaint)
+            if (translatedText.isNotEmpty()) {
+                // Draw semi-transparent white background for text
+                canvas.drawRect(bounds, backgroundPaint)
 
-            // Draw translated text (simple for now)
-            val x = bounds.left + 10f
-            val y = bounds.top + 30f
-            canvas.drawText(translatedText, x, y, paint)
+                // Draw translated text centered in bubble
+                val centerX = bounds.centerX()
+                val centerY = bounds.centerY()
+                canvas.drawText(translatedText, centerX, centerY, textPaint)
+            }
         }
 
-        return result
+        val totalTime = System.currentTimeMillis() - startTime
+        Log.d(TAG, "Applied translation to bitmap in ${totalTime}ms")
+
+        return inpaintedImage
+    }
+
+    /**
+     * Recreate binary masks from bubble bounding boxes
+     * Used for inpainting when applying cached translations
+     */
+    private fun recreateMasksFromBubbles(
+        boundingBoxes: List<RectF>,
+        width: Int,
+        height: Int,
+    ): List<Bitmap> {
+        return boundingBoxes.map { bounds ->
+            Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8).apply {
+                val canvas = Canvas(this)
+                val paint = Paint().apply {
+                    color = Color.WHITE
+                    style = Paint.Style.FILL
+                    isAntiAlias = true
+                }
+
+                // Draw rounded rectangle for bubble mask
+                val radius = 20f
+                canvas.drawRoundRect(bounds, radius, radius, paint)
+            }
+        }
     }
 
     override suspend fun hasCachedTranslation(chapterId: Long, pageIndex: Int): Boolean {

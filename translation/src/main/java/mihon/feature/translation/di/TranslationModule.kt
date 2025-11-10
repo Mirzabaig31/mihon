@@ -7,6 +7,8 @@ import mihon.feature.translation.data.TranslationCache
 import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.detector.YOLOv10BubbleDetector
+import android.renderscript.RenderScript
+import mihon.feature.translation.data.inpainting.SimpleInpaintingEngine
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
 import mihon.feature.translation.data.ocr.MLKitOCREngine
 import mihon.feature.translation.data.ocr.ModelDownloadManager
@@ -90,8 +92,17 @@ class TranslationModule(private val app: Application) : InjektModule {
             )
         }
 
+        // Phase 4A: Simple Inpainting (blur-based MVP)
+        // Will be upgraded to LaMa in Phase 4B for production quality
         addSingletonFactory<InpaintingEngine> {
-            StubInpaintingEngine()
+            try {
+                val renderScript = RenderScript.create(app)
+                Log.d("TranslationModule", "Using SimpleInpaintingEngine (blur-based)")
+                SimpleInpaintingEngine(renderScript)
+            } catch (e: Exception) {
+                Log.e("TranslationModule", "Failed to create SimpleInpaintingEngine, using stub", e)
+                StubInpaintingEngine()
+            }
         }
 
         // Phase 1: Gemini translator (fully functional)
