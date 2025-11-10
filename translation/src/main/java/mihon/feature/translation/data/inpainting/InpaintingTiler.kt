@@ -229,8 +229,10 @@ object InpaintingTiler {
         // Left edge gradient (if not left edge tile)
         if (!isLeftEdge && featherSize > 0) {
             val gradient = LinearGradient(
-                0f, 0f,
-                featherSize.toFloat(), 0f,
+                0f,
+                0f,
+                featherSize.toFloat(),
+                0f,
                 android.graphics.Color.TRANSPARENT,
                 android.graphics.Color.WHITE,
                 Shader.TileMode.CLAMP,
@@ -243,8 +245,10 @@ object InpaintingTiler {
         // Top edge gradient (if not top edge tile)
         if (!isTopEdge && featherSize > 0) {
             val gradient = LinearGradient(
-                0f, 0f,
-                0f, featherSize.toFloat(),
+                0f,
+                0f,
+                0f,
+                featherSize.toFloat(),
                 android.graphics.Color.TRANSPARENT,
                 android.graphics.Color.WHITE,
                 Shader.TileMode.CLAMP,
@@ -257,8 +261,10 @@ object InpaintingTiler {
         // Right edge gradient (if not right edge tile)
         if (!isRightEdge && featherSize > 0) {
             val gradient = LinearGradient(
-                (width - featherSize).toFloat(), 0f,
-                width.toFloat(), 0f,
+                (width - featherSize).toFloat(),
+                0f,
+                width.toFloat(),
+                0f,
                 android.graphics.Color.WHITE,
                 android.graphics.Color.TRANSPARENT,
                 Shader.TileMode.CLAMP,
@@ -271,8 +277,10 @@ object InpaintingTiler {
         // Bottom edge gradient (if not bottom edge tile)
         if (!isBottomEdge && featherSize > 0) {
             val gradient = LinearGradient(
-                0f, (height - featherSize).toFloat(),
-                0f, height.toFloat(),
+                0f,
+                (height - featherSize).toFloat(),
+                0f,
+                height.toFloat(),
                 android.graphics.Color.WHITE,
                 android.graphics.Color.TRANSPARENT,
                 Shader.TileMode.CLAMP,

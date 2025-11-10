@@ -1,13 +1,13 @@
 package mihon.feature.translation.di
 
 import android.app.Application
+import android.renderscript.RenderScript
 import android.util.Log
 import mihon.feature.translation.data.ModelManager
 import mihon.feature.translation.data.TranslationCache
 import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.detector.YOLOv10BubbleDetector
-import android.renderscript.RenderScript
 import mihon.feature.translation.data.inpainting.LamaInpaintingEngine
 import mihon.feature.translation.data.inpainting.SimpleInpaintingEngine
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
