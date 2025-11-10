@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import mihon.feature.translation.domain.models.Language
+import mihon.feature.translation.domain.models.ModelDownloadProgress
+import mihon.feature.translation.domain.models.PaddleModelDownloadProgress
 import mihon.feature.translation.domain.models.TranslationData
 import mihon.feature.translation.domain.models.TranslationPreference
 
@@ -78,4 +80,49 @@ interface TranslationManager {
      * Set source and target languages
      */
     suspend fun setLanguages(source: Language, target: Language)
+
+    /**
+     * Check if ML Kit OCR model for a language is downloaded
+     */
+    suspend fun isModelDownloaded(language: Language): Boolean
+
+    /**
+     * Download ML Kit OCR model for a specific language
+     * Returns a Flow that emits download progress
+     */
+    fun downloadModel(language: Language): Flow<ModelDownloadProgress>
+
+    /**
+     * Download ML Kit OCR models for multiple languages
+     * Returns a Flow that emits download progress for all models
+     */
+    fun downloadModels(languages: List<Language>): Flow<ModelDownloadProgress>
+
+    /**
+     * Check if PaddleOCR detection model is downloaded
+     */
+    suspend fun isPaddleDetectionModelDownloaded(): Boolean
+
+    /**
+     * Check if PaddleOCR recognition model for a language is downloaded
+     */
+    suspend fun isPaddleRecognitionModelDownloaded(language: Language): Boolean
+
+    /**
+     * Download PaddleOCR detection model
+     * Returns a Flow that emits download progress
+     */
+    fun downloadPaddleDetectionModel(): Flow<PaddleModelDownloadProgress>
+
+    /**
+     * Download PaddleOCR recognition model for a specific language
+     * Returns a Flow that emits download progress
+     */
+    fun downloadPaddleRecognitionModel(language: Language): Flow<PaddleModelDownloadProgress>
+
+    /**
+     * Download all PaddleOCR models for a language (detection + recognition)
+     * Returns a Flow that emits download progress
+     */
+    fun downloadAllPaddleModels(language: Language): Flow<PaddleModelDownloadProgress>
 }

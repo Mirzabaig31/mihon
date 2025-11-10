@@ -35,6 +35,7 @@ dependencies {
     // Coroutines
     implementation(platform(kotlinx.coroutines.bom))
     implementation(kotlinx.bundles.coroutines)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
     // Serialization (for API communication)
     implementation(kotlinx.bundles.serialization)
@@ -58,9 +59,22 @@ dependencies {
     implementation(libs.injekt)
 
     // ML Kit for OCR (Phase 2)
-    // implementation("com.google.mlkit:text-recognition-chinese:16.0.0")
-    // implementation("com.google.mlkit:text-recognition-korean:16.0.0")
-    // implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+    implementation("com.google.mlkit:text-recognition-korean:16.0.1")
+
+    // ML Kit Module Install API (for on-demand model download)
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+
+    // PaddleOCR for high-accuracy OCR (Phase 2 - Alternative OCR)
+    // TODO: Add Paddle Lite when implementing PaddleOCR inference
+    // See translation/PADDLEOCR_IMPLEMENTATION_GUIDE.md for instructions
+    // implementation("io.github.PaddlePaddle:paddle-lite:2.13.0") // Not available in Maven repos
+    // Alternative: Use PaddleOCR demo .aar or native code from GitHub
+
+    // OkHttp for model downloading (already included but ensuring availability)
+    // implementation(libs.bundles.okhttp)
 
     // TensorFlow Lite for YOLOv10 (Phase 3)
     // implementation("org.tensorflow:tensorflow-lite:2.14.0")
