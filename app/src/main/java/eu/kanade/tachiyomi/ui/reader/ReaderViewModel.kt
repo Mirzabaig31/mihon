@@ -881,6 +881,11 @@ class ReaderViewModel @JvmOverloads constructor(
                 eventChannel.send(Event.PageTranslated(pageIndex))
 
                 logcat { "Page $pageIndex translation completed" }
+
+                // Prefetch next pages if translation is still enabled
+                if (mutableState.value.translationEnabled) {
+                    prefetchUpcomingPages(pageIndex)
+                }
             } catch (e: CancellationException) {
                 // Translation was cancelled, cleanup
                 mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }
@@ -889,6 +894,51 @@ class ReaderViewModel @JvmOverloads constructor(
                 logcat(LogPriority.ERROR) { "Translation failed for page $pageIndex: ${e.message}" }
                 mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }
                 eventChannel.send(Event.TranslationError(pageIndex, e))
+            }
+        }
+    }
+
+    /**
+     * Prefetch and translate upcoming pages in the background.
+     * Translates next 2 pages to improve user experience.
+     */
+    private fun prefetchUpcomingPages(currentPageIndex: Int) {
+        val chapter = mutableState.value.viewerChapters?.currChapter ?: return
+        val pages = chapter.pages ?: return
+
+        // Translate next 2 pages
+        for (offset in 1..2) {
+            val nextPageIndex = currentPageIndex + offset
+            if (nextPageIndex < pages.size) {
+                translatePage(nextPageIndex)
+            }
+        }
+    }
+
+    /**
+     * Clears all translations for the current chapter to allow re-translation.
+     * Useful when user changes language settings.
+     */
+    fun clearTranslations() {
+        // Cancel all ongoing translations
+        translationJobs.values.forEach { it.cancel() }
+        translationJobs.clear()
+        mutableState.update { it.copy(translatingPages = emptySet()) }
+
+        // Clear all translated streams
+        val chapter = mutableState.value.viewerChapters?.currChapter
+        chapter?.pages?.forEach { page ->
+            page.translatedStream = null
+        }
+
+        // Clean up cache
+        cleanupTranslationCache()
+
+        // If translation is enabled, retranslate current page
+        if (mutableState.value.translationEnabled) {
+            val currentPage = mutableState.value.currentPage
+            if (currentPage >= 0) {
+                translatePage(currentPage)
             }
         }
     }

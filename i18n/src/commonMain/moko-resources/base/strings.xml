@@ -1105,6 +1105,9 @@
     <string name="pref_translation_clear_cache">Clear translation cache</string>
     <string name="pref_translation_clear_cache_summary">Free up storage space</string>
     <string name="pref_translation_cache_cleared">Translation cache cleared</string>
+    <string name="pref_translation_retranslate">Retranslate all pages</string>
+    <string name="pref_translation_retranslate_summary">Clear existing translations and retranslate (useful after changing languages)</string>
+    <string name="pref_translation_retranslate_confirm">This will clear all translated pages in the current chapter. Continue?</string>
 
     <!-- Reader translation -->
     <string name="action_toggle_translation">Toggle translation</string>
