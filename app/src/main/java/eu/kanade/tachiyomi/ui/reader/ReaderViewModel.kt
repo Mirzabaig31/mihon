@@ -858,7 +858,7 @@ class ReaderViewModel @JvmOverloads constructor(
                 // Save to temporary cache file
                 val cacheDir = File(Injekt.get<Application>().cacheDir, "translation")
                 cacheDir.mkdirs()
-                val tempFile = File(cacheDir, "ch${chapter.chapter.id}_pg${pageIndex}.jpg")
+                val tempFile = File(cacheDir, "ch${chapter.chapter.id}_pg$pageIndex.jpg")
                 tempFile.outputStream().use { out ->
                     translatedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
                 }
@@ -869,7 +869,9 @@ class ReaderViewModel @JvmOverloads constructor(
                         tempFile.inputStream()
                     } else {
                         // Fallback to original stream if cache file was deleted
-                        logcat(LogPriority.WARN) { "Translation cache file missing for page $pageIndex, using original" }
+                        logcat(LogPriority.WARN) {
+                            "Translation cache file missing for page $pageIndex, using original"
+                        }
                         page.stream?.invoke() ?: throw IllegalStateException("No stream available for page $pageIndex")
                     }
                 }
