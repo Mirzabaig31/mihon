@@ -10,6 +10,7 @@ import android.graphics.RectF
 import android.os.Build
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import mihon.feature.translation.data.ModelManager
 import mihon.feature.translation.domain.BubbleDetector
@@ -62,7 +63,10 @@ class YOLOv10BubbleDetector(
      */
     private fun loadModel() {
         try {
-            val modelBuffer = modelManager.getModel(MODEL_FILENAME)
+            // Use runBlocking to call suspend function from init block
+            val modelBuffer = runBlocking {
+                modelManager.getModel(MODEL_FILENAME)
+            }
 
             val options = Interpreter.Options().apply {
                 // Try GPU acceleration first
