@@ -45,8 +45,8 @@ import eu.kanade.presentation.more.settings.screen.about.AboutScreen
 import eu.kanade.presentation.more.settings.widget.TextPreferenceWidget
 import eu.kanade.presentation.util.LocalBackPress
 import eu.kanade.presentation.util.Screen
-import mihon.feature.translation.presentation.TranslationSettingsScreen
 import kotlinx.collections.immutable.persistentListOf
+import mihon.feature.translation.presentation.TranslationSettingsScreen
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.components.material.Scaffold
 import tachiyomi.presentation.core.i18n.stringResource

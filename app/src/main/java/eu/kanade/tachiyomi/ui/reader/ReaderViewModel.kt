@@ -1,6 +1,8 @@
 package eu.kanade.tachiyomi.ui.reader
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.annotation.IntRange
 import androidx.compose.runtime.Immutable
@@ -42,6 +44,7 @@ import eu.kanade.tachiyomi.util.storage.DiskUtil
 import eu.kanade.tachiyomi.util.storage.cacheImageDir
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +58,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
+import mihon.feature.translation.domain.TranslationManager
+import mihon.feature.translation.domain.TranslationPreferences
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.core.common.util.lang.launchIO
 import tachiyomi.core.common.util.lang.launchNonCancellable
@@ -80,11 +85,6 @@ import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.time.Instant
 import java.util.Date
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import kotlinx.coroutines.Job
-import mihon.feature.translation.domain.TranslationManager
-import mihon.feature.translation.domain.TranslationPreferences
 
 /**
  * Presenter used by the activity to perform background operations.
