@@ -1,9 +1,12 @@
 package mihon.feature.translation.di
 
 import android.app.Application
+import android.util.Log
+import mihon.feature.translation.data.ModelManager
 import mihon.feature.translation.data.TranslationCache
 import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
+import mihon.feature.translation.data.detector.YOLOv10BubbleDetector
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
 import mihon.feature.translation.data.ocr.MLKitOCREngine
 import mihon.feature.translation.data.ocr.ModelDownloadManager
@@ -36,10 +39,27 @@ class TranslationModule(private val app: Application) : InjektModule {
             TranslationCache(app)
         }
 
-        // Phase 1: Stub implementations for detector and inpainting
-        // These will be replaced in later phases
+        // Model Manager (Phase 3)
+        addSingletonFactory {
+            ModelManager(app)
+        }
+
+        // Phase 3: Bubble Detection (YOLOv10 with fallback to stub)
         addSingletonFactory<BubbleDetector> {
-            StubBubbleDetector()
+            try {
+                val modelManager = get<ModelManager>()
+                // Try to create YOLOv10 detector
+                if (modelManager.isModelAvailable("yolov10_bubble_detection.tflite")) {
+                    Log.d("TranslationModule", "Using YOLOv10 bubble detector")
+                    YOLOv10BubbleDetector(app, modelManager)
+                } else {
+                    Log.w("TranslationModule", "YOLOv10 model not found, using stub detector")
+                    StubBubbleDetector()
+                }
+            } catch (e: Exception) {
+                Log.e("TranslationModule", "Failed to create YOLOv10 detector, using stub", e)
+                StubBubbleDetector()
+            }
         }
 
         // Model Download Managers for on-demand model downloads
