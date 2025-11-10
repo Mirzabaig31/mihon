@@ -1,4 +1,4 @@
-package mihon.feature.translation.presentation
+package eu.kanade.presentation.more.settings.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import cafe.adriel.voyager.core.screen.Screen
 import eu.kanade.presentation.more.settings.Preference
-import eu.kanade.presentation.more.settings.screen.SearchableSettings
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
