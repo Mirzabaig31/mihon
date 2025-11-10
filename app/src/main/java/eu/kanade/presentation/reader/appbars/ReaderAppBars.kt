@@ -63,6 +63,8 @@ fun ReaderAppBars(
     onClickOrientation: () -> Unit,
     cropEnabled: Boolean,
     onClickCropBorder: () -> Unit,
+    translationEnabled: Boolean = false,
+    onClickTranslation: () -> Unit = {},
     onClickSettings: () -> Unit,
 ) {
     val isRtl = viewer is R2LPagerViewer
@@ -125,6 +127,8 @@ fun ReaderAppBars(
                     onClickOrientation = onClickOrientation,
                     cropEnabled = cropEnabled,
                     onClickCropBorder = onClickCropBorder,
+                    translationEnabled = translationEnabled,
+                    onClickTranslation = onClickTranslation,
                     onClickSettings = onClickSettings,
                 )
             }

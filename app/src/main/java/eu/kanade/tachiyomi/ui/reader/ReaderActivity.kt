@@ -242,6 +242,14 @@ class ReaderActivity : BaseActivity() {
                     is ReaderViewModel.Event.SetCoverResult -> {
                         onSetAsCoverResult(event.result)
                     }
+                    is ReaderViewModel.Event.PageTranslated -> {
+                        // Page translation completed successfully
+                        // UI will automatically update via state changes
+                    }
+                    is ReaderViewModel.Event.TranslationError -> {
+                        // Show error toast for translation failure
+                        toast(MR.strings.translation_error)
+                    }
                 }
             }
             .launchIn(lifecycleScope)
