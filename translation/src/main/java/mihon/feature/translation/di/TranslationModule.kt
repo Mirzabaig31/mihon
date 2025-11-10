@@ -17,6 +17,7 @@ import mihon.feature.translation.data.ocr.OCREngineProvider
 import mihon.feature.translation.data.ocr.PaddleModelDownloadManager
 import mihon.feature.translation.data.ocr.PaddleOCREngine
 import mihon.feature.translation.data.translator.GeminiTranslator
+import mihon.feature.translation.data.translator.OpenAICompatibleTranslator
 import mihon.feature.translation.domain.BubbleDetector
 import mihon.feature.translation.domain.InpaintingEngine
 import mihon.feature.translation.domain.OCREngine
@@ -124,13 +125,44 @@ class TranslationModule(private val app: Application) : InjektModule {
             StubInpaintingEngine()
         }
 
-        // Phase 1: Gemini translator (fully functional)
+        // Phase 1: Translation API (Gemini or OpenAI-compatible)
+        // Selects translator based on user preference
         addSingletonFactory<TranslatorAPI> {
             val preferences = get<TranslationPreferences>()
-            GeminiTranslator(
-                apiKey = preferences.geminiApiKey().get(),
-                client = get(),
-            )
+            val provider = preferences.translatorProvider().get()
+
+            when (provider) {
+                TranslationPreferences.PROVIDER_GEMINI,
+                TranslationPreferences.TRANSLATOR_GEMINI,
+                -> {
+                    Log.d("TranslationModule", "Using Gemini translator")
+                    GeminiTranslator(
+                        apiKey = preferences.geminiApiKey().get(),
+                        client = get(),
+                    )
+                }
+
+                TranslationPreferences.PROVIDER_OPENAI_COMPAT,
+                TranslationPreferences.TRANSLATOR_OPENAI,
+                -> {
+                    Log.d("TranslationModule", "Using OpenAI-compatible translator")
+                    OpenAICompatibleTranslator(
+                        baseUrl = preferences.openAiBaseUrl().get(),
+                        modelName = preferences.openAiModelName().get(),
+                        apiKey = preferences.openAiApiKey().get(),
+                        client = get(),
+                    )
+                }
+
+                else -> {
+                    // Default to Gemini
+                    Log.d("TranslationModule", "Unknown provider '$provider', defaulting to Gemini")
+                    GeminiTranslator(
+                        apiKey = preferences.geminiApiKey().get(),
+                        client = get(),
+                    )
+                }
+            }
         }
 
         // Main Translation Manager
