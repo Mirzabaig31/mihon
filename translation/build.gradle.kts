@@ -68,10 +68,20 @@ dependencies {
     implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
 
     // PaddleOCR for high-accuracy OCR (Phase 2 - Alternative OCR)
-    // TODO: Add Paddle Lite when implementing PaddleOCR inference
-    // See translation/PADDLEOCR_IMPLEMENTATION_GUIDE.md for instructions
-    // implementation("io.github.PaddlePaddle:paddle-lite:2.13.0") // Not available in Maven repos
-    // Alternative: Use PaddleOCR demo .aar or native code from GitHub
+    // Paddle Lite SDK - Manual installation required (not in Maven Central)
+    //
+    // ⚠️ SETUP REQUIRED: Download Paddle Lite AAR files manually
+    // 1. Download from: https://github.com/PaddlePaddle/Paddle-Lite/releases
+    //    File: paddle_lite_libs_v2.13_android.tar.gz (~50MB)
+    // 2. Extract and copy to: translation/libs/
+    //    - paddle_lite_java.aar
+    //    - paddle_lite_jni.aar
+    // 3. Uncomment lines below to enable Paddle OCR
+    //
+    // implementation(files("libs/paddle_lite_java.aar"))
+    // implementation(files("libs/paddle_lite_jni.aar"))
+    //
+    // See: translation/docs/PADDLEOCR_SETUP_GUIDE.md for full instructions
 
     // OkHttp for model downloading (already included but ensuring availability)
     // implementation(libs.bundles.okhttp)
