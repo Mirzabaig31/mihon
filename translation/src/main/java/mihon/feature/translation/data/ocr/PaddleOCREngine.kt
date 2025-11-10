@@ -171,7 +171,7 @@ class PaddleOCREngine(
                     TextBlock(
                         text = text,
                         confidence = confidence,
-                        boundingBox = textBoxes[index].bounds,
+                        boundingBox = textBoxes[index].boundingBox,
                         language = language
                     )
                 }
@@ -228,7 +228,7 @@ class PaddleOCREngine(
     ): Pair<String, Float> = withContext(Dispatchers.Default) {
         try {
             // Step 1: Crop to text box bounds
-            val croppedBox = cropBitmapToRect(image, textBox.bounds)
+            val croppedBox = cropBitmapToRect(image, textBox.boundingBox)
 
             // Step 2: Preprocess for recognition
             val preprocessed = PaddleOCRPreprocessor.preprocessRecognition(
