@@ -108,7 +108,17 @@ class TranslationPreferences(
         emptySet(),
     )
 
+    // Additional helper methods for UI
+    fun enabled() = translationEnabled()
+    fun openaiApiKey() = openAiApiKey()
+    fun cacheTranslations() = cacheEnabled()
+
     companion object {
+        // Translator providers
+        const val TRANSLATOR_GOOGLE = "google"
+        const val TRANSLATOR_GEMINI = "gemini"
+        const val TRANSLATOR_OPENAI = "openai_compat"
+
         const val PROVIDER_GEMINI = "gemini"
         const val PROVIDER_GOOGLE_CLOUD = "google_cloud"
         const val PROVIDER_OPENAI_COMPAT = "openai_compat"

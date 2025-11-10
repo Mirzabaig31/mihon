@@ -54,6 +54,7 @@ import eu.kanade.presentation.reader.OrientationSelectDialog
 import eu.kanade.presentation.reader.ReaderContentOverlay
 import eu.kanade.presentation.reader.ReaderPageActionsDialog
 import eu.kanade.presentation.reader.ReaderPageIndicator
+import eu.kanade.presentation.reader.ReaderTranslationOverlay
 import eu.kanade.presentation.reader.ReadingModeSelectDialog
 import eu.kanade.presentation.reader.appbars.ReaderAppBars
 import eu.kanade.presentation.reader.settings.ReaderSettingsDialog
@@ -269,6 +270,11 @@ class ReaderActivity : BaseActivity() {
             }
 
             ContentOverlay(state = state)
+
+            ReaderTranslationOverlay(
+                translatingPages = state.translatingPages,
+                currentPage = state.currentPage,
+            )
 
             AppBars(state = state)
         }
@@ -494,6 +500,14 @@ class ReaderActivity : BaseActivity() {
                 val enabled = viewModel.toggleCropBorders()
                 menuToggleToast?.cancel()
                 menuToggleToast = toast(if (enabled) MR.strings.on else MR.strings.off)
+            },
+            translationEnabled = state.translationEnabled,
+            onClickTranslation = {
+                viewModel.toggleTranslation()
+                menuToggleToast?.cancel()
+                menuToggleToast = toast(
+                    if (state.translationEnabled) MR.strings.translation_disabled else MR.strings.translation_enabled
+                )
             },
             onClickSettings = viewModel::openSettingsDialog,
         )

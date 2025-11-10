@@ -76,8 +76,15 @@ import tachiyomi.domain.source.service.SourceManager
 import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
+import uy.kohesive.injekt.injectLazy
+import java.io.File
 import java.time.Instant
 import java.util.Date
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import kotlinx.coroutines.Job
+import mihon.feature.translation.domain.TranslationManager
+import mihon.feature.translation.domain.TranslationPreferences
 
 /**
  * Presenter used by the activity to perform background operations.
@@ -103,11 +110,19 @@ class ReaderViewModel @JvmOverloads constructor(
     private val libraryPreferences: LibraryPreferences = Injekt.get(),
 ) : ViewModel() {
 
+    private val translationManager: TranslationManager by injectLazy()
+    private val translationPreferences: TranslationPreferences by injectLazy()
+
     private val mutableState = MutableStateFlow(State())
     val state = mutableState.asStateFlow()
 
     private val eventChannel = Channel<Event>()
     val eventFlow = eventChannel.receiveAsFlow()
+
+    /**
+     * Map of page index to translation job for tracking ongoing translations.
+     */
+    private val translationJobs = mutableMapOf<Int, Job>()
 
     /**
      * The manga loaded in the reader. It can be null when instantiated for a short time.
@@ -751,6 +766,104 @@ class ReaderViewModel @JvmOverloads constructor(
     }
 
     /**
+     * Toggles translation on/off for the reader.
+     * When enabled, translates the current page and prefetches upcoming pages.
+     */
+    fun toggleTranslation() {
+        val newEnabled = !mutableState.value.translationEnabled
+        mutableState.update { it.copy(translationEnabled = newEnabled) }
+
+        if (newEnabled) {
+            // Start translating current page
+            val currentPage = mutableState.value.currentPage
+            if (currentPage >= 0) {
+                translatePage(currentPage)
+            }
+        } else {
+            // Cancel all ongoing translations
+            translationJobs.values.forEach { it.cancel() }
+            translationJobs.clear()
+            mutableState.update { it.copy(translatingPages = emptySet()) }
+        }
+    }
+
+    /**
+     * Translates a specific page.
+     * Stores the translated image in the page's translatedStream property.
+     */
+    private fun translatePage(pageIndex: Int) {
+        val chapter = mutableState.value.viewerChapters?.currChapter ?: return
+        val page = chapter.pages?.getOrNull(pageIndex) ?: return
+
+        // Skip if already translating
+        if (mutableState.value.translatingPages.contains(pageIndex)) {
+            return
+        }
+
+        // Skip if already translated
+        if (page.translatedStream != null) {
+            return
+        }
+
+        // Mark as translating
+        mutableState.update { it.copy(translatingPages = it.translatingPages + pageIndex) }
+
+        translationJobs[pageIndex] = viewModelScope.launchIO {
+            try {
+                // Get the original page bitmap
+                val bitmap = getPageBitmap(page)
+
+                // TODO: Once bubble detection and inpainting are implemented, use full pipeline:
+                // val translatedBitmap = translationManager.translatePage(
+                //     pageImage = bitmap,
+                //     chapterId = chapter.chapter.id,
+                //     pageIndex = pageIndex,
+                // )
+
+                // For now, just save the original as a placeholder
+                // This demonstrates the infrastructure is working
+                val translatedBitmap = bitmap
+
+                // Save to temporary cache file
+                val cacheDir = File(Injekt.get<Application>().cacheDir, "translation")
+                cacheDir.mkdirs()
+                val tempFile = File(cacheDir, "ch${chapter.chapter.id}_pg${pageIndex}.jpg")
+                tempFile.outputStream().use { out ->
+                    translatedBitmap.compress(Bitmap.CompressFormat.JPEG, 95, out)
+                }
+
+                // Set the translated stream
+                page.translatedStream = { tempFile.inputStream() }
+
+                // Remove from translating set
+                mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }
+
+                // Notify that translation completed
+                eventChannel.send(Event.PageTranslated(pageIndex))
+
+                logcat { "Page $pageIndex translation completed" }
+            } catch (e: CancellationException) {
+                // Translation was cancelled, cleanup
+                mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }
+                throw e
+            } catch (e: Exception) {
+                logcat(LogPriority.ERROR) { "Translation failed for page $pageIndex: ${e.message}" }
+                mutableState.update { it.copy(translatingPages = it.translatingPages - pageIndex) }
+                eventChannel.send(Event.TranslationError(pageIndex, e))
+            }
+        }
+    }
+
+    /**
+     * Extracts bitmap from a ReaderPage.
+     */
+    private suspend fun getPageBitmap(page: ReaderPage): Bitmap = withIOContext {
+        val streamFn = page.stream ?: throw IllegalStateException("Page not loaded: ${page.index}")
+        BitmapFactory.decodeStream(streamFn.invoke())
+            ?: throw IllegalStateException("Failed to decode bitmap for page: ${page.index}")
+    }
+
+    /**
      * Generate a filename for the given [manga] and [page]
      */
     private fun generateFilename(
@@ -965,6 +1078,12 @@ class ReaderViewModel @JvmOverloads constructor(
         val dialog: Dialog? = null,
         val menuVisible: Boolean = false,
         @IntRange(from = -100, to = 100) val brightnessOverlayValue: Int = 0,
+
+        /**
+         * Translation state
+         */
+        val translationEnabled: Boolean = false,
+        val translatingPages: Set<Int> = emptySet(),
     ) {
         val currentChapter: ReaderChapter?
             get() = viewerChapters?.currChapter
@@ -990,5 +1109,11 @@ class ReaderViewModel @JvmOverloads constructor(
         data class SavedImage(val result: SaveImageResult) : Event
         data class ShareImage(val uri: Uri, val page: ReaderPage) : Event
         data class CopyImage(val uri: Uri) : Event
+
+        /**
+         * Translation events
+         */
+        data class PageTranslated(val pageIndex: Int) : Event
+        data class TranslationError(val pageIndex: Int, val error: Throwable) : Event
     }
 }
