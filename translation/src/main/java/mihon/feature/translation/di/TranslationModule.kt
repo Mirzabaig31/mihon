@@ -8,6 +8,7 @@ import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.detector.YOLOv10BubbleDetector
 import android.renderscript.RenderScript
+import mihon.feature.translation.data.inpainting.LamaInpaintingEngine
 import mihon.feature.translation.data.inpainting.SimpleInpaintingEngine
 import mihon.feature.translation.data.inpainting.StubInpaintingEngine
 import mihon.feature.translation.data.ocr.MLKitOCREngine
@@ -92,17 +93,35 @@ class TranslationModule(private val app: Application) : InjektModule {
             )
         }
 
-        // Phase 4A: Simple Inpainting (blur-based MVP)
-        // Will be upgraded to LaMa in Phase 4B for production quality
+        // Phase 4: Inpainting Engine (LaMa → Simple → Stub fallback chain)
+        // Priority: LaMa (production) > Simple (MVP) > Stub (no-op)
         addSingletonFactory<InpaintingEngine> {
+            val modelManager = get<ModelManager>()
+
+            // Try LaMa first (if model available)
+            if (modelManager.isModelAvailable("lama_inpainting.tflite")) {
+                try {
+                    Log.d("TranslationModule", "Using LamaInpaintingEngine (production quality)")
+                    return@addSingletonFactory LamaInpaintingEngine(app, modelManager)
+                } catch (e: Exception) {
+                    Log.w("TranslationModule", "LaMa initialization failed, trying Simple", e)
+                }
+            } else {
+                Log.d("TranslationModule", "LaMa model not found, trying Simple inpainting")
+            }
+
+            // Fallback to Simple (blur-based)
             try {
                 val renderScript = RenderScript.create(app)
                 Log.d("TranslationModule", "Using SimpleInpaintingEngine (blur-based)")
-                SimpleInpaintingEngine(renderScript)
+                return@addSingletonFactory SimpleInpaintingEngine(renderScript)
             } catch (e: Exception) {
-                Log.e("TranslationModule", "Failed to create SimpleInpaintingEngine, using stub", e)
-                StubInpaintingEngine()
+                Log.w("TranslationModule", "Simple inpainting failed, using stub", e)
             }
+
+            // Final fallback to Stub
+            Log.w("TranslationModule", "Using StubInpaintingEngine (no inpainting)")
+            StubInpaintingEngine()
         }
 
         // Phase 1: Gemini translator (fully functional)
