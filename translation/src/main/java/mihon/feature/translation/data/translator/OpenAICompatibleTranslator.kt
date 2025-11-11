@@ -107,7 +107,8 @@ Instructions:
 Texts to translate:
 ${texts.mapIndexed { index, text -> "${index + 1}. $text" }.joinToString("\n")}
 
-Translations:""".trimIndent()
+Translations:
+        """.trimIndent()
     }
 
     /**
