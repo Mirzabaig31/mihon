@@ -119,7 +119,9 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
 
         // Add API key input based on selected provider
         when (translatorProvider) {
-            TranslationPreferences.TRANSLATOR_GEMINI -> {
+            TranslationPreferences.TRANSLATOR_GEMINI,
+            TranslationPreferences.PROVIDER_GEMINI,
+            -> {
                 preferenceItems.add(
                     Preference.PreferenceItem.EditTextPreference(
                         preference = translationPreferences.geminiApiKey(),
@@ -128,7 +130,24 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     ),
                 )
             }
-            TranslationPreferences.TRANSLATOR_OPENAI -> {
+            TranslationPreferences.TRANSLATOR_OPENAI,
+            TranslationPreferences.PROVIDER_OPENAI_COMPAT,
+            "openai_compat",
+            -> {
+                preferenceItems.add(
+                    Preference.PreferenceItem.EditTextPreference(
+                        preference = translationPreferences.openAiBaseUrl(),
+                        title = stringResource(MR.strings.pref_translation_openai_base_url),
+                        subtitle = stringResource(MR.strings.pref_translation_openai_base_url_summary),
+                    ),
+                )
+                preferenceItems.add(
+                    Preference.PreferenceItem.EditTextPreference(
+                        preference = translationPreferences.openAiModelName(),
+                        title = stringResource(MR.strings.pref_translation_openai_model_name),
+                        subtitle = stringResource(MR.strings.pref_translation_openai_model_name_summary),
+                    ),
+                )
                 preferenceItems.add(
                     Preference.PreferenceItem.EditTextPreference(
                         preference = translationPreferences.openaiApiKey(),

@@ -1073,11 +1073,15 @@
     <string name="pref_translation_provider">Translation API</string>
     <string name="pref_translation_provider_google">Google Translate (Free)</string>
     <string name="pref_translation_provider_gemini">Gemini Pro (API key required)</string>
-    <string name="pref_translation_provider_openai">OpenAI GPT (API key required)</string>
+    <string name="pref_translation_provider_openai">OpenAI-compatible (Custom URL/Model)</string>
     <string name="pref_translation_gemini_api_key">Gemini API key</string>
     <string name="pref_translation_gemini_api_key_summary">Get key from: ai.google.dev</string>
-    <string name="pref_translation_openai_api_key">OpenAI API key</string>
-    <string name="pref_translation_openai_api_key_summary">Get key from: platform.openai.com</string>
+    <string name="pref_translation_openai_api_key">API key</string>
+    <string name="pref_translation_openai_api_key_summary">API key for authentication (optional for local LLMs)</string>
+    <string name="pref_translation_openai_base_url">Base URL</string>
+    <string name="pref_translation_openai_base_url_summary">API endpoint (e.g., api.deepseek.com, localhost:11434)</string>
+    <string name="pref_translation_openai_model_name">Model name</string>
+    <string name="pref_translation_openai_model_name_summary">Model identifier (e.g., deepseek-chat, gpt-4o-mini, llama3)</string>
 
     <!-- Model download -->
     <string name="pref_category_models">OCR Models</string>
