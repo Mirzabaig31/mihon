@@ -844,16 +844,12 @@ class ReaderViewModel @JvmOverloads constructor(
                 // Get the original page bitmap
                 val bitmap = getPageBitmap(page)
 
-                // TODO: Once bubble detection and inpainting are implemented, use full pipeline:
-                // val translatedBitmap = translationManager.translatePage(
-                //     pageImage = bitmap,
-                //     chapterId = chapter.chapter.id,
-                //     pageIndex = pageIndex,
-                // )
-
-                // For now, just save the original as a placeholder
-                // This demonstrates the infrastructure is working
-                val translatedBitmap = bitmap
+                // Translate the page using the full translation pipeline
+                val translatedBitmap = translationManager.translatePage(
+                    pageImage = bitmap,
+                    chapterId = chapter.chapter.id,
+                    pageIndex = pageIndex,
+                )
 
                 // Save to temporary cache file
                 val cacheDir = File(Injekt.get<Application>().cacheDir, "translation")

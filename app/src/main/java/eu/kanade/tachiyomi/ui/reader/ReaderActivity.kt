@@ -247,8 +247,23 @@ class ReaderActivity : BaseActivity() {
                         // UI will automatically update via state changes
                     }
                     is ReaderViewModel.Event.TranslationError -> {
-                        // Show error toast for translation failure
-                        toast(MR.strings.translation_error)
+                        // Show detailed error toast for translation failure
+                        val errorMessage = event.error.message?.let { msg ->
+                            when {
+                                msg.contains("Phase 1") -> "Translation failed: Bubble detection error"
+                                msg.contains("Phase 2") -> "Translation failed: OCR error"
+                                msg.contains("Phase 3") -> "Translation failed: API error - check settings"
+                                msg.contains("Phase 4") -> "Translation failed: Inpainting error"
+                                msg.contains("Phase 5") -> "Translation failed: Rendering error"
+                                msg.contains("API key") -> "Translation failed: API key not configured"
+                                msg.contains("Base URL") -> "Translation failed: Invalid API URL"
+                                else -> "Translation failed: ${msg.take(50)}"
+                            }
+                        } ?: getString(MR.strings.translation_error)
+                        toast(errorMessage)
+                        logcat(logcat.LogPriority.ERROR) {
+                            "Translation error on page ${event.pageIndex}: ${event.error.message}"
+                        }
                     }
                 }
             }
