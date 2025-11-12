@@ -2,10 +2,6 @@ package mihon.feature.translation.data
 
 import android.content.Context
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -17,7 +13,7 @@ import java.util.Locale
  * Features:
  * - Writes to app's external files directory (Android/data/[package]/files/translation_logs/)
  * - Includes timestamp for each log entry
- * - Thread-safe file writing
+ * - Thread-safe file writing using synchronized blocks
  * - Automatic log rotation (keeps last 5 log files)
  * - Separate log file per session
  */
@@ -25,7 +21,7 @@ class TranslationLogger(private val context: Context) {
 
     private val logDir = File(context.getExternalFilesDir(null), "translation_logs")
     private val currentLogFile: File
-    private val mutex = Mutex()
+    private val fileLock = Any() // Lock object for synchronized blocks
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
     private val fileNameFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
@@ -94,14 +90,15 @@ class TranslationLogger(private val context: Context) {
 
     /**
      * Write raw message to log file (without logcat)
+     * Thread-safe using synchronized block
      */
     private fun writeToFile(message: String) {
         try {
             val timestamp = dateFormat.format(Date())
             val logEntry = "$timestamp | $message\n"
 
-            // Write synchronously to avoid coroutine overhead
-            synchronized(this) {
+            // Write synchronously with explicit lock object
+            synchronized(fileLock) {
                 currentLogFile.appendText(logEntry)
             }
         } catch (e: Exception) {
@@ -155,18 +152,20 @@ class TranslationLogger(private val context: Context) {
     }
 
     /**
-     * Clear all log files
+     * Clear all log files (except current session)
+     * Thread-safe operation
      */
-    suspend fun clearAllLogs() = withContext(Dispatchers.IO) {
-        mutex.withLock {
+    fun clearAllLogs() {
+        synchronized(fileLock) {
             try {
                 val logFiles = getAllLogFiles()
+                var cleared = 0
                 logFiles.forEach { file ->
-                    if (file != currentLogFile) {
-                        file.delete()
+                    if (file != currentLogFile && file.delete()) {
+                        cleared++
                     }
                 }
-                Log.i(TAG, "Cleared ${logFiles.size - 1} old log files")
+                Log.i(TAG, "Cleared $cleared old log files")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to clear logs: ${e.message}")
             }

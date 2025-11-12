@@ -172,17 +172,16 @@ class TranslationManagerImpl(
             logger.d(TAG, "📍 PHASE 1/5: Bubble Detection")
             logger.d(TAG, "Detector: ${bubbleDetector.javaClass.simpleName}")
             val detectionResult = try {
+                var result: mihon.feature.translation.domain.models.DetectionResult? = null
                 val detectionTime = measureTimeMillis {
-                    bubbleDetector.detectBubbles(pageImage)
-                }.also { time ->
-                    logger.d(TAG, "✅ Bubble detection completed in ${time}ms")
+                    result = bubbleDetector.detectBubbles(pageImage)
                 }
-                bubbleDetector.detectBubbles(pageImage).also { result ->
-                    logger.d(TAG, "Found ${result.bubbles.size} bubbles")
-                    if (result.bubbles.isEmpty()) {
-                        logger.w(TAG, "⚠️ No bubbles detected - page may have no text or model issue")
-                    }
+                logger.d(TAG, "✅ Bubble detection completed in ${detectionTime}ms")
+                logger.d(TAG, "Found ${result!!.bubbles.size} bubbles")
+                if (result!!.bubbles.isEmpty()) {
+                    logger.w(TAG, "⚠️ No bubbles detected - page may have no text or model issue")
                 }
+                result!!
             } catch (e: Exception) {
                 logger.e(TAG, "❌ PHASE 1 FAILED: Bubble Detection Error", e)
                 logger.e(TAG, "Error details: ${e.message}")
@@ -199,35 +198,31 @@ class TranslationManagerImpl(
             logger.d(TAG, "OCR Engine: ${ocrEngine.getName()}")
             logger.d(TAG, "Processing ${detectionResult.textRegions.size} regions")
             val ocrResults = try {
+                var results: List<mihon.feature.translation.domain.models.OCRResult>? = null
                 val ocrTime = measureTimeMillis {
-                    ocrEngine.extractText(
+                    results = ocrEngine.extractText(
                         pageImage,
                         detectionResult.textRegions,
                         sourceLanguage,
                     )
-                }.also { time ->
-                    logger.d(TAG, "✅ OCR completed in ${time}ms")
                 }
-                ocrEngine.extractText(
-                    pageImage,
-                    detectionResult.textRegions,
-                    sourceLanguage,
-                ).also { results ->
-                    val successCount = results.count { it.text.isNotEmpty() }
-                    val errorCount = results.count { it.error != null }
-                    logger.d(TAG, "OCR results: $successCount successful, $errorCount errors")
+                logger.d(TAG, "✅ OCR completed in ${ocrTime}ms")
 
-                    // Log individual OCR results for debugging
-                    results.forEachIndexed { index, result ->
-                        if (result.error != null) {
-                            logger.w(TAG, "  Region $index: ERROR - ${result.error}")
-                        } else if (result.text.isEmpty()) {
-                            logger.w(TAG, "  Region $index: Empty text")
-                        } else {
-                            logger.d(TAG, "  Region $index: \"${result.text}\" (confidence: ${result.confidence})")
-                        }
+                val successCount = results!!.count { it.text.isNotEmpty() }
+                val errorCount = results!!.count { it.error != null }
+                logger.d(TAG, "OCR results: $successCount successful, $errorCount errors")
+
+                // Log individual OCR results for debugging
+                results!!.forEachIndexed { index, result ->
+                    if (result.error != null) {
+                        logger.w(TAG, "  Region $index: ERROR - ${result.error}")
+                    } else if (result.text.isEmpty()) {
+                        logger.w(TAG, "  Region $index: Empty text")
+                    } else {
+                        logger.d(TAG, "  Region $index: \"${result.text}\" (confidence: ${result.confidence})")
                     }
                 }
+                results!!
             } catch (e: Exception) {
                 logger.e(TAG, "❌ PHASE 2 FAILED: OCR Error", e)
                 logger.e(TAG, "Error details: ${e.message}")
@@ -247,25 +242,25 @@ class TranslationManagerImpl(
 
             val translationResultsList = if (textsWithIndices.isNotEmpty()) {
                 try {
+                    var results: List<TranslationResult>? = null
                     val translationTime = measureTimeMillis {
-                        translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage)
-                    }.also { time ->
-                        logger.d(TAG, "✅ Translation completed in ${time}ms")
+                        results = translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage)
                     }
-                    translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage).also { results ->
-                        val successCount = results.count { it.translatedText.isNotEmpty() && it.error == null }
-                        val errorCount = results.count { it.error != null }
-                        logger.d(TAG, "Translation results: $successCount successful, $errorCount errors")
+                    logger.d(TAG, "✅ Translation completed in ${translationTime}ms")
 
-                        // Log translation results for debugging
-                        results.forEachIndexed { index, result ->
-                            if (result.error != null) {
-                                logger.w(TAG, "  Text $index: ERROR - ${result.error}")
-                            } else {
-                                logger.d(TAG, "  Text $index: \"${result.originalText}\" → \"${result.translatedText}\"")
-                            }
+                    val successCount = results!!.count { it.translatedText.isNotEmpty() && it.error == null }
+                    val errorCount = results!!.count { it.error != null }
+                    logger.d(TAG, "Translation results: $successCount successful, $errorCount errors")
+
+                    // Log translation results for debugging
+                    results!!.forEachIndexed { index, result ->
+                        if (result.error != null) {
+                            logger.w(TAG, "  Text $index: ERROR - ${result.error}")
+                        } else {
+                            logger.d(TAG, "  Text $index: \"${result.originalText}\" → \"${result.translatedText}\"")
                         }
                     }
+                    results!!
                 } catch (e: Exception) {
                     logger.e(TAG, "❌ PHASE 3 FAILED: Translation API Error", e)
                     logger.e(TAG, "Error details: ${e.message}")
