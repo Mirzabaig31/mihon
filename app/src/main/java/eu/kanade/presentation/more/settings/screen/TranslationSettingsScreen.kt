@@ -32,6 +32,7 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
             getOCRGroup(translationPreferences),
             getTranslatorGroup(translationPreferences),
             getAdvancedGroup(translationPreferences),
+            getDebugGroup(),
         )
     }
 
@@ -181,6 +182,93 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     subtitle = stringResource(MR.strings.pref_translation_clear_cache_summary),
                     onClick = {
                         // TODO: Implement cache clearing
+                    },
+                ),
+            ),
+        )
+    }
+
+    @Composable
+    private fun getDebugGroup(): Preference.PreferenceGroup {
+        val logger = remember { mihon.feature.translation.data.TranslationLogger.getInstance(
+            androidx.compose.ui.platform.LocalContext.current
+        ) }
+
+        return Preference.PreferenceGroup(
+            title = "Debug & Logs",
+            preferenceItems = persistentListOf(
+                Preference.PreferenceItem.InfoPreference(
+                    "Log files are saved to help diagnose translation issues. " +
+                        "Logs include details about bubble detection, OCR, translation API, and rendering.",
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = "View Current Log",
+                    subtitle = logger.getLogFile().name,
+                    onClick = {
+                        // Open log file with system file viewer
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                            val uri = androidx.core.content.FileProvider.getUriForFile(
+                                context,
+                                "${context.packageName}.provider",
+                                logger.getLogFile(),
+                            )
+                            setDataAndType(uri, "text/plain")
+                            flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        }
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            android.util.Log.e("TranslationSettings", "Failed to open log file", e)
+                        }
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = "Share Logs",
+                    subtitle = "Share log files for debugging",
+                    onClick = {
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        val logFiles = logger.getAllLogFiles()
+                        if (logFiles.isNotEmpty()) {
+                            val uris = logFiles.map { file ->
+                                androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    file,
+                                )
+                            }
+                            val intent = android.content.Intent(android.content.Intent.ACTION_SEND_MULTIPLE).apply {
+                                type = "text/plain"
+                                putParcelableArrayListExtra(
+                                    android.content.Intent.EXTRA_STREAM,
+                                    ArrayList(uris),
+                                )
+                                flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            }
+                            context.startActivity(
+                                android.content.Intent.createChooser(intent, "Share Translation Logs"),
+                            )
+                        }
+                    },
+                ),
+                Preference.PreferenceItem.TextPreference(
+                    title = "Log Directory",
+                    subtitle = logger.getLogDirectory(),
+                    onClick = {
+                        // Copy path to clipboard
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                            as android.content.ClipboardManager
+                        val clip = android.content.ClipData.newPlainText(
+                            "Log Directory",
+                            logger.getLogDirectory(),
+                        )
+                        clipboard.setPrimaryClip(clip)
+                        android.widget.Toast.makeText(
+                            context,
+                            "Log directory path copied to clipboard",
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
                     },
                 ),
             ),

@@ -5,6 +5,7 @@ import android.renderscript.RenderScript
 import android.util.Log
 import mihon.feature.translation.data.ModelManager
 import mihon.feature.translation.data.TranslationCache
+import mihon.feature.translation.data.TranslationLogger
 import mihon.feature.translation.data.TranslationManagerImpl
 import mihon.feature.translation.data.detector.StubBubbleDetector
 import mihon.feature.translation.data.detector.YOLOv10BubbleDetector
@@ -41,6 +42,11 @@ class TranslationModule(private val app: Application) : InjektModule {
         // Cache
         addSingletonFactory {
             TranslationCache(app)
+        }
+
+        // Logger for file-based logging
+        addSingletonFactory {
+            TranslationLogger.getInstance(app)
         }
 
         // Model Manager (Phase 3)
@@ -176,6 +182,7 @@ class TranslationModule(private val app: Application) : InjektModule {
                 cache = get(),
                 modelDownloadManager = get(),
                 paddleModelDownloadManager = get(),
+                logger = get(),
             )
         }
     }
