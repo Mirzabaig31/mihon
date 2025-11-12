@@ -10,6 +10,7 @@ import eu.kanade.presentation.more.settings.Preference
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
 import mihon.feature.translation.domain.TranslationPreferences
 import tachiyomi.i18n.MR
 import tachiyomi.presentation.core.i18n.stringResource
@@ -169,6 +170,10 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
     private fun getAdvancedGroup(
         translationPreferences: TranslationPreferences,
     ): Preference.PreferenceGroup {
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val scope = androidx.compose.runtime.rememberCoroutineScope()
+        val cache = remember { uy.kohesive.injekt.Injekt.get<mihon.feature.translation.data.TranslationCache>() }
+
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_translation_advanced),
             preferenceItems = persistentListOf(
@@ -181,7 +186,23 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     title = stringResource(MR.strings.pref_translation_clear_cache),
                     subtitle = stringResource(MR.strings.pref_translation_clear_cache_summary),
                     onClick = {
-                        // TODO: Implement cache clearing
+                        scope.launch {
+                            try {
+                                cache.clearAll()
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Translation cache cleared successfully",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                            } catch (e: Exception) {
+                                android.util.Log.e("TranslationSettings", "Failed to clear cache", e)
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Failed to clear cache: ${e.message}",
+                                    android.widget.Toast.LENGTH_LONG,
+                                ).show()
+                            }
+                        }
                     },
                 ),
             ),
@@ -190,9 +211,8 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
 
     @Composable
     private fun getDebugGroup(): Preference.PreferenceGroup {
-        val logger = remember { mihon.feature.translation.data.TranslationLogger.getInstance(
-            androidx.compose.ui.platform.LocalContext.current
-        ) }
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val logger = remember { mihon.feature.translation.data.TranslationLogger.getInstance(context) }
 
         return Preference.PreferenceGroup(
             title = "Debug & Logs",
@@ -205,21 +225,24 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     title = "View Current Log",
                     subtitle = logger.getLogFile().name,
                     onClick = {
-                        // Open log file with system file viewer
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                context,
-                                "${context.packageName}.provider",
-                                logger.getLogFile(),
-                            )
-                            setDataAndType(uri, "text/plain")
-                            flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        }
                         try {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.provider",
+                                    logger.getLogFile(),
+                                )
+                                setDataAndType(uri, "text/plain")
+                                flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            }
                             context.startActivity(intent)
                         } catch (e: Exception) {
                             android.util.Log.e("TranslationSettings", "Failed to open log file", e)
+                            android.widget.Toast.makeText(
+                                context,
+                                "Failed to open log file: ${e.message}",
+                                android.widget.Toast.LENGTH_LONG,
+                            ).show()
                         }
                     },
                 ),
@@ -227,9 +250,17 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     title = "Share Logs",
                     subtitle = "Share log files for debugging",
                     onClick = {
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        val logFiles = logger.getAllLogFiles()
-                        if (logFiles.isNotEmpty()) {
+                        try {
+                            val logFiles = logger.getAllLogFiles()
+                            if (logFiles.isEmpty()) {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "No log files available",
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
+                                return@TextPreference
+                            }
+
                             val uris = logFiles.map { file ->
                                 androidx.core.content.FileProvider.getUriForFile(
                                     context,
@@ -248,6 +279,13 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                             context.startActivity(
                                 android.content.Intent.createChooser(intent, "Share Translation Logs"),
                             )
+                        } catch (e: Exception) {
+                            android.util.Log.e("TranslationSettings", "Failed to share logs", e)
+                            android.widget.Toast.makeText(
+                                context,
+                                "Failed to share logs: ${e.message}",
+                                android.widget.Toast.LENGTH_LONG,
+                            ).show()
                         }
                     },
                 ),
@@ -255,20 +293,27 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
                     title = "Log Directory",
                     subtitle = logger.getLogDirectory(),
                     onClick = {
-                        // Copy path to clipboard
-                        val context = androidx.compose.ui.platform.LocalContext.current
-                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager
-                        val clip = android.content.ClipData.newPlainText(
-                            "Log Directory",
-                            logger.getLogDirectory(),
-                        )
-                        clipboard.setPrimaryClip(clip)
-                        android.widget.Toast.makeText(
-                            context,
-                            "Log directory path copied to clipboard",
-                            android.widget.Toast.LENGTH_SHORT,
-                        ).show()
+                        try {
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                as android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText(
+                                "Log Directory",
+                                logger.getLogDirectory(),
+                            )
+                            clipboard.setPrimaryClip(clip)
+                            android.widget.Toast.makeText(
+                                context,
+                                "Log directory path copied to clipboard",
+                                android.widget.Toast.LENGTH_SHORT,
+                            ).show()
+                        } catch (e: Exception) {
+                            android.util.Log.e("TranslationSettings", "Failed to copy path", e)
+                            android.widget.Toast.makeText(
+                                context,
+                                "Failed to copy path: ${e.message}",
+                                android.widget.Toast.LENGTH_LONG,
+                            ).show()
+                        }
                     },
                 ),
             ),
