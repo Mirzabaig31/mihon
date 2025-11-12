@@ -32,6 +32,7 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
             getGeneralGroup(translationPreferences),
             getOCRGroup(translationPreferences),
             getTranslatorGroup(translationPreferences),
+            getTextRenderingGroup(translationPreferences),
             getAdvancedGroup(translationPreferences),
             getDebugGroup(),
         )
@@ -162,6 +163,89 @@ object TranslationSettingsScreen : Screen, SearchableSettings {
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pref_category_translator),
+            preferenceItems = preferenceItems.toPersistentList(),
+        )
+    }
+
+    @Composable
+    private fun getTextRenderingGroup(
+        translationPreferences: TranslationPreferences,
+    ): Preference.PreferenceGroup {
+        val fontSizeMode by translationPreferences.fontSizeMode().collectAsState()
+
+        val preferenceItems = mutableListOf<Preference.PreferenceItem<out Any, out Any>>(
+            Preference.PreferenceItem.ListPreference(
+                preference = translationPreferences.fontSizeMode(),
+                title = "Font Size Mode",
+                subtitle = "Choose automatic (adaptive) or manual font sizing",
+                entries = persistentMapOf(
+                    TranslationPreferences.FONT_SIZE_AUTO to "Automatic (Adaptive)",
+                    TranslationPreferences.FONT_SIZE_MANUAL to "Manual",
+                ),
+            ),
+        )
+
+        // Show manual font size slider only when manual mode is selected
+        if (fontSizeMode == TranslationPreferences.FONT_SIZE_MANUAL) {
+            preferenceItems.add(
+                Preference.PreferenceItem.SliderPreference(
+                    value = translationPreferences.manualFontSize().get(),
+                    title = "Font Size",
+                    subtitle = "Manual font size: ${translationPreferences.manualFontSize().get()}sp",
+                    min = 10,
+                    max = 36,
+                    onValueChanged = {
+                        translationPreferences.manualFontSize().set(it)
+                        true
+                    },
+                ),
+            )
+        }
+
+        // Font style preference
+        preferenceItems.add(
+            Preference.PreferenceItem.ListPreference(
+                preference = translationPreferences.fontStyle(),
+                title = "Font Style",
+                subtitle = "Choose normal or bold text",
+                entries = persistentMapOf(
+                    TranslationPreferences.FONT_STYLE_NORMAL to "Normal",
+                    TranslationPreferences.FONT_STYLE_BOLD to "Bold",
+                ),
+            ),
+        )
+
+        // Text alignment preference
+        preferenceItems.add(
+            Preference.PreferenceItem.ListPreference(
+                preference = translationPreferences.textAlignment(),
+                title = "Text Alignment",
+                subtitle = "Auto uses bubble type for alignment",
+                entries = persistentMapOf(
+                    TranslationPreferences.ALIGNMENT_AUTO to "Auto (Recommended)",
+                    TranslationPreferences.ALIGNMENT_CENTER to "Center",
+                    TranslationPreferences.ALIGNMENT_LEFT to "Left",
+                ),
+            ),
+        )
+
+        // Background opacity slider
+        preferenceItems.add(
+            Preference.PreferenceItem.SliderPreference(
+                value = translationPreferences.backgroundOpacity().get(),
+                title = "Background Opacity",
+                subtitle = "Text background transparency: ${(translationPreferences.backgroundOpacity().get() * 100 / 255)}%",
+                min = 128,
+                max = 255,
+                onValueChanged = {
+                    translationPreferences.backgroundOpacity().set(it)
+                    true
+                },
+            ),
+        )
+
+        return Preference.PreferenceGroup(
+            title = "Text Rendering",
             preferenceItems = preferenceItems.toPersistentList(),
         )
     }

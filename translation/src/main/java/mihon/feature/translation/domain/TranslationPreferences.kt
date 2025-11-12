@@ -108,6 +108,32 @@ class TranslationPreferences(
         emptySet(),
     )
 
+    // Text rendering preferences
+    fun fontSizeMode() = preferenceStore.getString(
+        "translation_font_size_mode",
+        "auto", // auto or manual
+    )
+
+    fun manualFontSize() = preferenceStore.getInt(
+        "translation_manual_font_size",
+        18, // Default manual size in sp
+    )
+
+    fun fontStyle() = preferenceStore.getString(
+        "translation_font_style",
+        "normal", // normal or bold
+    )
+
+    fun textAlignment() = preferenceStore.getString(
+        "translation_text_alignment",
+        "auto", // auto, center, left
+    )
+
+    fun backgroundOpacity() = preferenceStore.getInt(
+        "translation_background_opacity",
+        230, // 0-255, default 90% opaque
+    )
+
     // Additional helper methods for UI
     fun enabled() = translationEnabled()
     fun openaiApiKey() = openAiApiKey()
@@ -142,5 +168,18 @@ class TranslationPreferences(
         const val QUALITY_HIGH = "high"
         const val QUALITY_BALANCED = "balanced"
         const val QUALITY_FAST = "fast"
+
+        // Font size modes
+        const val FONT_SIZE_AUTO = "auto"
+        const val FONT_SIZE_MANUAL = "manual"
+
+        // Font styles
+        const val FONT_STYLE_NORMAL = "normal"
+        const val FONT_STYLE_BOLD = "bold"
+
+        // Text alignment
+        const val ALIGNMENT_AUTO = "auto"
+        const val ALIGNMENT_CENTER = "center"
+        const val ALIGNMENT_LEFT = "left"
     }
 }
