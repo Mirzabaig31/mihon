@@ -244,7 +244,8 @@ class TranslationManagerImpl(
                 try {
                     var results: List<TranslationResult>? = null
                     val translationTime = measureTimeMillis {
-                        results = translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage)
+                        results =
+                            translator.translate(textsWithIndices.map { it.second }, sourceLanguage, targetLanguage)
                     }
                     logger.d(TAG, "✅ Translation completed in ${translationTime}ms")
 
