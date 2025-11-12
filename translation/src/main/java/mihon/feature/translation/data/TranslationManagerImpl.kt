@@ -42,6 +42,7 @@ class TranslationManagerImpl(
     private val modelDownloadManager: ModelDownloadManager,
     private val paddleModelDownloadManager: PaddleModelDownloadManager,
     private val logger: TranslationLogger,
+    private val textRenderer: mihon.feature.translation.data.rendering.TextRenderer,
 ) : TranslationManager {
 
     private val _preference = MutableStateFlow(getCurrentPreference())
@@ -365,37 +366,32 @@ class TranslationManagerImpl(
             try {
                 val canvas = Canvas(inpaintedImage)
 
-                val textPaint = Paint().apply {
-                    color = Color.BLACK
-                    textSize = 24f
-                    isAntiAlias = true
-                    textAlign = Paint.Align.CENTER
-                }
-
-                val backgroundPaint = Paint().apply {
-                    color = Color.WHITE
-                    style = Paint.Style.FILL
-                    alpha = 230 // Slightly transparent for better blending
-                }
-
                 var renderedCount = 0
+                var failedCount = 0
+
                 translationData.bubbles.forEach { translatedBubble ->
-                    val bounds = translatedBubble.bubble.boundingBox
-                    val translatedText = translatedBubble.translation.translatedText
+                    val result = textRenderer.renderBubble(canvas, translatedBubble)
 
-                    if (translatedText.isNotEmpty()) {
-                        // Draw semi-transparent white background for text
-                        canvas.drawRect(bounds, backgroundPaint)
-
-                        // Draw translated text centered in bubble
-                        val centerX = bounds.centerX()
-                        val centerY = bounds.centerY()
-                        canvas.drawText(translatedText, centerX, centerY, textPaint)
-                        renderedCount++
+                    when (result) {
+                        is mihon.feature.translation.data.rendering.RenderResult.Success -> {
+                            renderedCount++
+                            logger.d(
+                                TAG,
+                                "Bubble rendered: ${translatedBubble.translation.translatedText.take(20)}... " +
+                                    "(${result.fontSize}sp, ${result.lineCount} lines)",
+                            )
+                        }
+                        is mihon.feature.translation.data.rendering.RenderResult.Failed -> {
+                            failedCount++
+                            logger.w(TAG, "Bubble rendering failed: ${result.reason}")
+                        }
+                        is mihon.feature.translation.data.rendering.RenderResult.Empty -> {
+                            // Skip empty bubbles silently
+                        }
                     }
                 }
 
-                logger.d(TAG, "✅ Text rendering completed: $renderedCount texts drawn")
+                logger.d(TAG, "✅ Text rendering completed: $renderedCount texts drawn, $failedCount failed")
 
                 val totalTime = System.currentTimeMillis() - startTime
                 logger.d(TAG, "===== Translation applied successfully in ${totalTime}ms =====")

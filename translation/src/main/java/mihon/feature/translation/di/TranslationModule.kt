@@ -139,6 +139,14 @@ class TranslationModule(private val app: Application) : InjektModule {
             )
         }
 
+        // Text Renderer for advanced text rendering (wrapping, adaptive sizing)
+        addSingletonFactory {
+            mihon.feature.translation.data.rendering.TextRenderer(
+                preferences = get(),
+                config = mihon.feature.translation.data.rendering.RenderConfig(),
+            )
+        }
+
         // Main Translation Manager
         addSingletonFactory<TranslationManager> {
             TranslationManagerImpl(
@@ -151,6 +159,7 @@ class TranslationModule(private val app: Application) : InjektModule {
                 modelDownloadManager = get(),
                 paddleModelDownloadManager = get(),
                 logger = get(),
+                textRenderer = get(),
             )
         }
     }

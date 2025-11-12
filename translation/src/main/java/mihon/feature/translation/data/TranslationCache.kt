@@ -145,6 +145,10 @@ private data class CachedTranslation(
                         originalText = bubble.ocrResult.text,
                         translatedText = bubble.translation.translatedText,
                         confidence = bubble.translation.confidence,
+                        // Store bubble metadata for rendering
+                        bubbleType = bubble.bubble.type.name,
+                        textStyle = bubble.bubble.textStyle.name,
+                        ocrConfidence = bubble.ocrResult.confidence,
                     )
                 },
                 processingTimeMs = data.processingTimeMs,
@@ -160,6 +164,10 @@ private data class CachedBubble(
     val originalText: String,
     val translatedText: String,
     val confidence: Float,
+    // NEW: Store bubble metadata for proper rendering
+    val bubbleType: String = "SPEECH",
+    val textStyle: String = "HORIZONTAL",
+    val ocrConfidence: Float = 0.0f,
 )
 
 @Serializable
@@ -178,7 +186,48 @@ private fun CachedTranslation.toTranslationData(): TranslationData {
             ?: mihon.feature.translation.domain.models.Language.JAPANESE,
         targetLanguage = mihon.feature.translation.domain.models.Language.fromCode(targetLanguageCode)
             ?: mihon.feature.translation.domain.models.Language.ENGLISH,
-        bubbles = emptyList(), // We don't cache full bubble data for Phase 1
+        // FIXED: Restore full bubble list from cache
+        bubbles = bubbles.map { cached ->
+            mihon.feature.translation.domain.models.TranslatedBubble(
+                bubble = mihon.feature.translation.domain.models.SpeechBubble(
+                    boundingBox = android.graphics.RectF(
+                        cached.boundingBox.left,
+                        cached.boundingBox.top,
+                        cached.boundingBox.right,
+                        cached.boundingBox.bottom,
+                    ),
+                    confidence = cached.confidence,
+                    type = try {
+                        mihon.feature.translation.domain.models.BubbleType.valueOf(cached.bubbleType)
+                    } catch (e: Exception) {
+                        mihon.feature.translation.domain.models.BubbleType.SPEECH
+                    },
+                    textStyle = try {
+                        mihon.feature.translation.domain.models.TextStyle.valueOf(cached.textStyle)
+                    } catch (e: Exception) {
+                        mihon.feature.translation.domain.models.TextStyle.HORIZONTAL
+                    },
+                ),
+                ocrResult = mihon.feature.translation.domain.models.OCRResult(
+                    text = cached.originalText,
+                    confidence = cached.ocrConfidence,
+                    boundingBox = android.graphics.RectF(
+                        cached.boundingBox.left,
+                        cached.boundingBox.top,
+                        cached.boundingBox.right,
+                        cached.boundingBox.bottom,
+                    ),
+                    textBlocks = emptyList(),
+                    error = null,
+                ),
+                translation = mihon.feature.translation.domain.models.TranslationResult(
+                    originalText = cached.originalText,
+                    translatedText = cached.translatedText,
+                    confidence = cached.confidence,
+                    error = null,
+                ),
+            )
+        },
         processingTimeMs = processingTimeMs,
         timestamp = timestamp,
     )
