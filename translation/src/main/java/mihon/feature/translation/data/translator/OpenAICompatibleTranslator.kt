@@ -226,10 +226,25 @@ Translations:
     }
 
     /**
-     * Normalize base URL to chat completions endpoint
+     * Normalize base URL to chat completions endpoint with validation
      */
     private fun normalizeBaseUrl(url: String): String {
         var normalized = url.trim().removeSuffix("/")
+
+        // Validate URL format
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            throw IllegalArgumentException(
+                "Base URL must start with http:// or https://. Got: $normalized",
+            )
+        }
+
+        // Validate URL structure (basic check for valid characters)
+        if (!normalized.matches(Regex("^https?://[a-zA-Z0-9._:/-]+$"))) {
+            throw IllegalArgumentException(
+                "Base URL contains invalid characters. Expected format: " +
+                    "http(s)://hostname[:port][/path]",
+            )
+        }
 
         // If URL doesn't end with the chat completions path, add it
         if (!normalized.endsWith("/chat/completions")) {
